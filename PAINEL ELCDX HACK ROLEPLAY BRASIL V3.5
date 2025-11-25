@@ -1,0 +1,565 @@
+local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
+local LocalPlayer = Players.LocalPlayer
+local PlayerGui = LocalPlayer:WaitForChild("PlayerGui")
+
+for _, g in pairs({"PAINEL_ELCDX","ELCDXFarmGUI"}) do
+    local old = PlayerGui:FindFirstChild(g)
+    if old then old:Destroy() end
+end
+
+local farmando, noclipAtivo, espAtivo, guiMinimizado = false, false, false, false
+local posicaoOriginal, dinheiroFarmado, paginaAtual = nil, 0, 1
+local modoGodAtivo = false
+local baseplateEmergencia = nil
+local espectando = false
+local jogadorEspectado = nil
+local cameraOriginal = nil
+
+local tps = {
+    {"Pizzaria caixa 1",Vector3.new(-330.9,63.2,-164.4)},
+    {"Pizzaria caixa 2",Vector3.new(-313.1,63.2,-165.1)},
+    {"Posto 1",Vector3.new(6.7,63.2,-48.6)},
+    {"Joalheria caixa 1",Vector3.new(-1223.5,63.7,-295.5)},
+    {"Joalheria caixa 2",Vector3.new(-1219.1,63.8,-295.2)},
+    {"Joalheria caixa 3",Vector3.new(-1189.9,63.8,-295.1)},
+    {"Posto 2",Vector3.new(-843.5,63.2,-893.7)},
+    {"Loja ELITE",Vector3.new(-951.6,63.2,-856.6)},
+    {"Banco Bradesco",Vector3.new(-940.4,63.4,-1803.4)},
+    {"Garagem praça",Vector3.new(-533.6,63.2,-54.5)},
+    {"Garagem",Vector3.new(-612.7,63.2,-126.0)},
+    {"Loja de arma praça",Vector3.new(-710.4,63.2,96.7)},
+    {"Praça",Vector3.new(-914.6,64.9,-31.1)},
+    {"Itaú",Vector3.new(-1724.0,65.5,-3.5)},
+    {"Banco Bradesco cofre 1",Vector3.new(-838.1,63.7,-1857.7)},
+    {"Banco Bradesco cofre 2",Vector3.new(-838.7,63.7,-1901.0)},
+    {"Loja de arma 2",Vector3.new(-1024.5,63.2,-2358.3)},
+    {"Entrada tropa da França",Vector3.new(-1698.9,63.0,-2284.6)},
+    {"Base TDF",Vector3.new(-1616.7,41.4,-2343.1)},
+    {"Lavagem de dinheiro",Vector3.new(428.5,63.6,1297.4)},
+    {"Tropa da barragem",Vector3.new(1146.4,111.6,1953.6)},
+    {"Topo da favela",Vector3.new(1330.2,123.0,1652.5)},
+    {"Base Polícia militar",Vector3.new(-284.0,63.5,491.0)},
+    {"Base PMESP",Vector3.new(-188.0,63.5,473.7)},
+    {"Base PRF",Vector3.new(364.9,64.1,-1285.4)},
+    {"Base LM",Vector3.new(4838.4,118.0,-4409.5)},
+    {"Entrada LM",Vector3.new(4804.4,107.4,-4096.3)},
+    {"Grota",Vector3.new(2516.0,114.8,-3599.1)},
+    {"Base grota",Vector3.new(2565.3,126.7,-3639.1)},
+    {"Entrada EB",Vector3.new(5266.9,62.9,-2424.4)},
+    {"Turno EB",Vector3.new(5275.5,67.0,-2196.3)},
+    {"Base EB",Vector3.new(5237.9,67.0,-2208.5)},
+    {"STS EB",Vector3.new(5134.8,67.0,-2149.4)}
+}
+
+local function notif(t) 
+    local n=Instance.new("ScreenGui",PlayerGui) 
+    local f=Instance.new("Frame",n) 
+    f.Size=UDim2.new(0,200,0,35) 
+    f.Position=UDim2.new(0.5,-100,0,10) 
+    f.BackgroundColor3=Color3.fromRGB(20,20,20) 
+    f.BorderColor3=Color3.fromRGB(0,255,0)
+    f.BorderSizePixel=2
+    local l=Instance.new("TextLabel",f) 
+    l.Size=UDim2.new(1,0,1,0) 
+    l.BackgroundTransparency=1 
+    l.Text=t 
+    l.TextColor3=Color3.fromRGB(0,255,0) 
+    l.TextSize=11
+    l.Font=Enum.Font.Code 
+    task.wait(3) 
+    n:Destroy() 
+end
+
+local function tpSimples(pos)
+    if LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart") then
+        LocalPlayer.Character.HumanoidRootPart.CFrame = CFrame.new(pos)
+        LocalPlayer.Character.HumanoidRootPart.Velocity = Vector3.new(0, 0, 0)
+    end
+    notif("Teleporte realizado!")
+end
+
+local function iniciarEspectacao(jogador)
+    if espectando then
+        notif("Já está espectando alguém!")
+        return
+    end
+    
+    if not jogador or not jogador.Character then
+        notif("Jogador não encontrado!")
+        return
+    end
+    
+    local camera = workspace.CurrentCamera
+    cameraOriginal = camera.CameraSubject
+    
+    camera.CameraSubject = jogador.Character:FindFirstChild("Humanoid")
+    espectando = true
+    jogadorEspectado = jogador
+    
+    notif("Espectando: " .. jogador.Name)
+end
+
+local function pararEspectacao()
+    if not espectando then
+        notif("Você não está espectando!")
+        return
+    end
+    
+    local camera = workspace.CurrentCamera
+    if cameraOriginal then
+        camera.CameraSubject = cameraOriginal
+    elseif LocalPlayer.Character then
+        camera.CameraSubject = LocalPlayer.Character:FindFirstChild("Humanoid")
+    end
+    
+    espectando = false
+    local nomeJogador = jogadorEspectado and jogadorEspectado.Name or "jogador"
+    jogadorEspectado = nil
+    cameraOriginal = nil
+    
+    notif("Parou de espectar " .. nomeJogador)
+end
+
+local gui = Instance.new("ScreenGui", PlayerGui)
+gui.Name = "PAINEL_ELCDX"
+gui.ResetOnSpawn = false
+
+local f = Instance.new("Frame", gui)
+f.Size = UDim2.new(0,200,0,250)
+f.Position = UDim2.new(0.5,-100,0.3,0)
+f.BackgroundColor3 = Color3.fromRGB(15,15,15)
+f.BorderColor3 = Color3.fromRGB(150,150,150)
+f.BorderSizePixel = 3
+f.Active = true
+f.Draggable = true
+
+local h = Instance.new("Frame", f)
+h.Size = UDim2.new(1,0,0,35)
+h.BackgroundColor3 = Color3.fromRGB(0,0,0)
+
+local t = Instance.new("TextLabel", h)
+t.Size = UDim2.new(1,-22,1,0)
+t.BackgroundTransparency = 1
+t.Text = "PAINEL ELCDX V3.5"
+t.Font = Enum.Font.Code
+t.TextColor3 = Color3.fromRGB(255,255,255)
+t.TextSize = 16
+
+local bMin = Instance.new("TextButton", h)
+bMin.Size = UDim2.new(0,18,0,18)
+bMin.Position = UDim2.new(1,-20,0,8)
+bMin.BackgroundColor3 = Color3.fromRGB(30,30,30)
+bMin.Text = "-"
+bMin.TextColor3 = Color3.fromRGB(255,255,255)
+bMin.Font = Enum.Font.Code
+bMin.TextSize = 12
+
+local nav = Instance.new("Frame", f)
+nav.Size = UDim2.new(1,0,0,22)
+nav.Position = UDim2.new(0,0,0,35)
+nav.BackgroundColor3 = Color3.fromRGB(10,10,10)
+
+local btns = {}
+local pgs_count = 4
+for i=1,pgs_count do
+    local b = Instance.new("TextButton", nav)
+    b.Size = UDim2.new(0,32,0,19)
+    b.Position = UDim2.new(0,3+35*(i-1),0,1)
+    b.Text = tostring(i)
+    b.Font = Enum.Font.Code
+    b.BackgroundColor3 = i==1 and Color3.fromRGB(50,50,50) or Color3.fromRGB(30,30,30)
+    b.TextColor3 = i==1 and Color3.fromRGB(255,0,0) or Color3.fromRGB(255,255,255)
+    b.TextSize = 11
+    btns[i] = b
+end
+
+local pgs = {}
+for i=1,pgs_count do
+    local p = Instance.new("ScrollingFrame", f)
+    p.Size = UDim2.new(1,0,1,-57)
+    p.Position = UDim2.new(0,0,0,57)
+    p.CanvasSize = UDim2.new(0,0,0,0)
+    p.ScrollBarThickness = 6
+    p.ScrollBarImageColor3 = Color3.fromRGB(100,100,100)
+    p.BackgroundColor3 = Color3.fromRGB(20,20,20)
+    p.BorderSizePixel = 0
+    p.Visible = i==1
+    
+    local container = Instance.new("Frame", p)
+    container.Size = UDim2.new(1,0,0,0)
+    container.BackgroundTransparency = 1
+    
+    local l = Instance.new("UIListLayout", container)
+    l.Padding = UDim.new(0,2)
+    l:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function() 
+        container.Size = UDim2.new(1,0,0,l.AbsoluteContentSize.Y)
+        p.CanvasSize = UDim2.new(0,0,0,l.AbsoluteContentSize.Y+5)
+    end)
+    
+    pgs[i] = {scrolling = p, container = container}
+end
+
+for _,v in ipairs(tps) do
+    local b = Instance.new("TextButton", pgs[1].container)
+    b.Size = UDim2.new(1,-8,0,24)
+    b.BackgroundColor3 = Color3.fromRGB(35,35,35)
+    b.TextColor3 = Color3.fromRGB(255,255,255)
+    b.Font = Enum.Font.Code
+    b.TextSize = 9
+    b.TextXAlignment = Enum.TextXAlignment.Left
+    local pad = Instance.new("UIPadding", b)
+    pad.PaddingLeft = UDim.new(0,5)
+    b.Text = v[1]
+    b.MouseButton1Click:Connect(function() 
+        tpSimples(v[2]) 
+    end)
+end
+
+local st = Instance.new("TextLabel", pgs[2].container)
+st.Size = UDim2.new(1,0,0,18)
+st.BackgroundTransparency = 1
+st.Text = "[STATUS]: OFFLINE"
+st.Font = Enum.Font.Code
+st.TextColor3 = Color3.fromRGB(150,150,150)
+st.TextSize = 9
+st.TextXAlignment = Enum.TextXAlignment.Left
+local pad1 = Instance.new("UIPadding", st)
+pad1.PaddingLeft = UDim.new(0,5)
+
+local fb = Instance.new("TextButton", pgs[2].container)
+fb.Size = UDim2.new(1,-8,0,30)
+fb.BackgroundColor3 = Color3.fromRGB(35,35,35)
+fb.Text = "Começar Farm"
+fb.TextColor3 = Color3.fromRGB(255,255,255)
+fb.Font = Enum.Font.Code
+fb.TextSize = 11
+
+local dl = Instance.new("TextLabel", pgs[2].container)
+dl.Size = UDim2.new(1,0,0,18)
+dl.BackgroundTransparency = 1
+dl.Text = "Dinheiro farmado: $0"
+dl.Font = Enum.Font.Code
+dl.TextColor3 = Color3.fromRGB(200,200,200)
+dl.TextSize = 9
+dl.TextXAlignment = Enum.TextXAlignment.Left
+local pad2 = Instance.new("UIPadding", dl)
+pad2.PaddingLeft = UDim.new(0,5)
+
+local function verificarTime() return LocalPlayer.Team and LocalPlayer.Team.Name == "Gari" end
+local function estaSegurandoLixo()
+    if LocalPlayer.Character then
+        local t = LocalPlayer.Character:FindFirstChildOfClass("Tool")
+        return t and (t.Name:lower():find("lixo") or t.Name == "LixoModel")
+    end
+end
+local function encontrarLixo()
+    local lp = LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart")
+    if not lp then return end
+    local alvo, dist = nil, math.huge
+    for _, obj in pairs(workspace:GetDescendants()) do
+        if obj:IsA("Model") and obj.Name == "LixoModel" then
+            local prox = obj:FindFirstChildWhichIsA("ProximityPrompt", true)
+            if prox then
+                local ok, pos = pcall(function() return obj:GetPivot().Position end)
+                if ok and pos then
+                    local d = (pos - lp.Position).Magnitude
+                    if d < dist then alvo, dist = obj, d end
+                end
+            end
+        end
+    end
+    return alvo
+end
+
+fb.MouseButton1Click:Connect(function()
+    if farmando then
+        farmando = false
+        st.Text = "[STATUS]: OFFLINE"
+        st.TextColor3 = Color3.fromRGB(150,150,150)
+        fb.Text = "Começar Farm"
+        notif("Farm parado.")
+        return
+    end
+    farmando = true
+    notif("Iniciando Farm...")
+    st.Text = "[STATUS]: ONLINE"
+    st.TextColor3 = Color3.fromRGB(255,255,255)
+    fb.Text = "Parar Farm"
+    if not verificarTime() then
+        notif("Não está no time Gari!")
+        farmando = false
+        st.Text = "[STATUS]: OFFLINE"
+        fb.Text = "Começar Farm"
+        return
+    end
+    if LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart") then
+        posicaoOriginal = LocalPlayer.Character.HumanoidRootPart.CFrame
+    end
+    task.spawn(function()
+        while farmando do
+            if estaSegurandoLixo() then
+                if posicaoOriginal then tpSimples(posicaoOriginal.Position) end
+                task.wait(1)
+                dinheiroFarmado = dinheiroFarmado + 250
+                dl.Text = "Dinheiro farmado: $"..dinheiroFarmado
+            else
+                local l = encontrarLixo()
+                if l and LocalPlayer.Character then
+                    local hrp = LocalPlayer.Character:FindFirstChild("HumanoidRootPart")
+                    if hrp then
+                        local ok, pivot = pcall(function() return l:GetPivot() end)
+                        if ok and pivot then
+                            tpSimples((pivot * CFrame.new(0,2,0)).Position)
+                            task.wait(0.5)
+                            local p = l:FindFirstChildWhichIsA("ProximityPrompt", true)
+                            if p then fireproximityprompt(p) end
+                        end
+                    end
+                end
+            end
+            task.wait(0.2)
+        end
+    end)
+end)
+
+local be = Instance.new("TextButton", pgs[3].container)
+be.Size = UDim2.new(1,-8,0,30)
+be.BackgroundColor3 = Color3.fromRGB(35,35,35)
+be.Text = "ESP (Desativado)"
+be.TextColor3 = Color3.fromRGB(255,255,255)
+be.Font = Enum.Font.Code
+be.TextSize = 11
+
+local bn = Instance.new("TextButton", pgs[3].container)
+bn.Size = UDim2.new(1,-8,0,30)
+bn.BackgroundColor3 = Color3.fromRGB(35,35,35)
+bn.Text = "Noclip (Desativado)"
+bn.TextColor3 = Color3.fromRGB(255,255,255)
+bn.Font = Enum.Font.Code
+bn.TextSize = 11
+
+local wsFrame = Instance.new("Frame", pgs[3].container)
+wsFrame.Size = UDim2.new(1,-8,0,60)
+wsFrame.BackgroundColor3 = Color3.fromRGB(25,25,25)
+wsFrame.BorderColor3 = Color3.fromRGB(50,50,50)
+wsFrame.BorderSizePixel = 1
+
+local wsLabel = Instance.new("TextLabel", wsFrame)
+wsLabel.Size = UDim2.new(1,0,0,20)
+wsLabel.Position = UDim2.new(0,0,0,2)
+wsLabel.BackgroundTransparency = 1
+wsLabel.Text = "WALKSPEED"
+wsLabel.Font = Enum.Font.Code
+wsLabel.TextColor3 = Color3.fromRGB(200,200,200)
+wsLabel.TextSize = 11
+
+local wsInput = Instance.new("TextBox", wsFrame)
+wsInput.Size = UDim2.new(1,-10,0,25)
+wsInput.Position = UDim2.new(0,5,0,25)
+wsInput.BackgroundColor3 = Color3.fromRGB(35,35,35)
+wsInput.BorderColor3 = Color3.fromRGB(100,100,100)
+wsInput.Text = "16"
+wsInput.PlaceholderText = "Digite a velocidade..."
+wsInput.TextColor3 = Color3.fromRGB(255,255,255)
+wsInput.Font = Enum.Font.Code
+wsInput.TextSize = 12
+
+local tpToolBtn = Instance.new("TextButton", pgs[3].container)
+tpToolBtn.Size = UDim2.new(1,-8,0,30)
+tpToolBtn.BackgroundColor3 = Color3.fromRGB(35,35,35)
+tpToolBtn.Text = "TP Tool (Desativado)"
+tpToolBtn.TextColor3 = Color3.fromRGB(255,255,255)
+tpToolBtn.Font = Enum.Font.Code
+tpToolBtn.TextSize = 11
+
+local tpToolAtivo = false
+local tpTool = nil
+
+be.MouseButton1Click:Connect(function()
+    espAtivo = not espAtivo
+    be.Text = espAtivo and "ESP (Ativado)" or "ESP (Desativado)"
+    for _, p in pairs(Players:GetPlayers()) do
+        if p.Character and p ~= LocalPlayer then
+            local ex = p.Character:FindFirstChild("ESPHighlight")
+            if espAtivo and not ex then
+                local hl = Instance.new("Highlight", p.Character)
+                hl.Name = "ESPHighlight"
+                hl.FillTransparency = 0.6
+                hl.FillColor = Color3.fromRGB(255,0,0)
+                hl.OutlineColor = Color3.fromRGB(255,0,0)
+            elseif not espAtivo and ex then
+                ex:Destroy()
+            end
+        end
+    end
+end)
+
+bn.MouseButton1Click:Connect(function()
+    noclipAtivo = not noclipAtivo
+    bn.Text = noclipAtivo and "Noclip (Ativado)" or "Noclip (Desativado)"
+end)
+
+wsInput.FocusLost:Connect(function(enterPressed)
+    local velocidade = tonumber(wsInput.Text)
+    if velocidade and LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("Humanoid") then
+        LocalPlayer.Character.Humanoid.WalkSpeed = velocidade
+        notif("Velocidade alterada para: " .. velocidade)
+    else
+        notif("Digite um número válido!")
+        wsInput.Text = "16"
+    end
+end)
+
+local function criarTPTool()
+    if tpTool then
+        tpTool:Destroy()
+    end
+    
+    tpTool = Instance.new("Tool")
+    tpTool.Name = "CDX TP"
+    tpTool.RequiresHandle = false
+    tpTool.CanBeDropped = false
+    
+    tpTool.Activated:Connect(function()
+        local mouse = LocalPlayer:GetMouse()
+        if mouse.Target and LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart") then
+            local hitPos = mouse.Hit.Position
+            LocalPlayer.Character.HumanoidRootPart.CFrame = CFrame.new(hitPos + Vector3.new(0, 3, 0))
+            notif("Teleportado!")
+        end
+    end)
+    
+    tpTool.Parent = LocalPlayer.Backpack
+end
+
+tpToolBtn.MouseButton1Click:Connect(function()
+    tpToolAtivo = not tpToolAtivo
+    tpToolBtn.Text = tpToolAtivo and "TP Tool (Ativado)" or "TP Tool (Desativado)"
+    
+    if tpToolAtivo then
+        criarTPTool()
+        notif("TP Tool criado! Equipe para usar.")
+    else
+        if tpTool then
+            tpTool:Destroy()
+            tpTool = nil
+        end
+        notif("TP Tool removido.")
+    end
+end)
+
+RunService.Stepped:Connect(function()
+    if noclipAtivo and LocalPlayer.Character then
+        for _, part in pairs(LocalPlayer.Character:GetDescendants()) do
+            if part:IsA("BasePart") then part.CanCollide = false end
+        end
+    end
+end)
+
+local function mudaPag(n)
+    paginaAtual = n
+    if guiMinimizado then return end
+    for i,p in ipairs(pgs) do 
+        p.scrolling.Visible = (i==n) 
+    end
+    for i,b in ipairs(btns) do 
+        b.TextColor3 = i==n and Color3.fromRGB(255,0,0) or Color3.fromRGB(255,255,255)
+        b.BackgroundColor3 = i==n and Color3.fromRGB(50,50,50) or Color3.fromRGB(30,30,30)
+    end
+end
+
+for i,b in ipairs(btns) do b.MouseButton1Click:Connect(function() mudaPag(i) end) end
+
+bMin.MouseButton1Click:Connect(function()
+    guiMinimizado = not guiMinimizado
+    if guiMinimizado then
+        for _,p in ipairs(pgs) do p.scrolling.Visible = false end
+        nav.Visible = false
+        f.Size = UDim2.new(0,200,0,35)
+        bMin.Text = "+"
+    else
+        for i,p in ipairs(pgs) do p.scrolling.Visible = (i==paginaAtual) end
+        nav.Visible = true
+        f.Size = UDim2.new(0,200,0,250)
+        bMin.Text = "-"
+    end
+end)
+
+local function atualizarListaJogadores()
+    pgs[4].container:ClearAllChildren()
+    
+    if not pgs[4].container:FindFirstChild("UIListLayout") then
+        local layout = Instance.new("UIListLayout", pgs[4].container)
+        layout.Padding = UDim.new(0,2)
+        layout:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function() 
+            pgs[4].container.Size = UDim2.new(1,0,0,layout.AbsoluteContentSize.Y)
+            pgs[4].scrolling.CanvasSize = UDim2.new(0,0,0,layout.AbsoluteContentSize.Y+5)
+        end)
+    end
+    
+    for _, player in ipairs(Players:GetPlayers()) do
+        if player ~= LocalPlayer then
+            local frameJogador = Instance.new("Frame", pgs[4].container)
+            frameJogador.Size = UDim2.new(1, -8, 0, 24)
+            frameJogador.BackgroundTransparency = 1
+            
+            local botao = Instance.new("TextButton", frameJogador)
+            botao.Size = UDim2.new(1, -56, 1, 0)
+            botao.Position = UDim2.new(0, 0, 0, 0)
+            botao.BackgroundColor3 = Color3.fromRGB(35, 35, 35)
+            botao.TextColor3 = Color3.fromRGB(255, 255, 255)
+            botao.Font = Enum.Font.Code
+            botao.TextSize = 9
+            botao.TextXAlignment = Enum.TextXAlignment.Left
+            local pad = Instance.new("UIPadding", botao)
+            pad.PaddingLeft = UDim.new(0,5)
+            botao.Text = player.Name .. " (@" .. player.DisplayName .. ")"
+            botao.MouseButton1Click:Connect(function()
+                if player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
+                    tpSimples(player.Character.HumanoidRootPart.Position)
+                else
+                    notif("Personagem de " .. player.Name .. " não encontrado!")
+                end
+            end)
+            
+            local botaoSpec = Instance.new("TextButton", frameJogador)
+            botaoSpec.Size = UDim2.new(0, 26, 1, 0)
+            botaoSpec.Position = UDim2.new(1, -54, 0, 0)
+            botaoSpec.BackgroundColor3 = Color3.fromRGB(0, 120, 255)
+            botaoSpec.TextColor3 = Color3.fromRGB(255, 255, 255)
+            botaoSpec.Font = Enum.Font.Code
+            botaoSpec.TextSize = 10
+            botaoSpec.Text = "[E]"
+            botaoSpec.MouseButton1Click:Connect(function()
+                iniciarEspectacao(player)
+            end)
+            
+            local botaoParar = Instance.new("TextButton", frameJogador)
+            botaoParar.Size = UDim2.new(0, 26, 1, 0)
+            botaoParar.Position = UDim2.new(1, -26, 0, 0)
+            botaoParar.BackgroundColor3 = Color3.fromRGB(255, 140, 0)
+            botaoParar.TextColor3 = Color3.fromRGB(255, 255, 255)
+            botaoParar.Font = Enum.Font.Code
+            botaoParar.TextSize = 10
+            botaoParar.Text = "[P]"
+            botaoParar.MouseButton1Click:Connect(function()
+                pararEspectacao()
+            end)
+        end
+    end
+    
+    local layout = pgs[4].container:FindFirstChild("UIListLayout")
+    if layout then
+        pgs[4].scrolling.CanvasSize = UDim2.new(0,0,0,layout.AbsoluteContentSize.Y+5)
+    end
+end
+
+Players.PlayerAdded:Connect(atualizarListaJogadores)
+Players.PlayerRemoving:Connect(atualizarListaJogadores)
+
+atualizarListaJogadores()
+
+notif("PAINEL ELCDX V3.5 carregado!")
+notif("Sistema de espectação ativo!")
+notif("Lista de jogadores ativa!")
