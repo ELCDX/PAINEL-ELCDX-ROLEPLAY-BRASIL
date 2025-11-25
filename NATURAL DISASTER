@@ -1,0 +1,727 @@
+local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
+local UserInputService = game:GetService("UserInputService")
+local SoundService = game:GetService("SoundService")
+local StarterGui = game:GetService("StarterGui")
+local TextChatService = game:GetService("TextChatService")
+local TweenService = game:GetService("TweenService")
+
+local LocalPlayer = Players.LocalPlayer
+
+local function playSound(soundId)
+    local sound = Instance.new("Sound")
+    sound.SoundId = "rbxassetid://" .. soundId
+    sound.Parent = SoundService
+    sound:Play()
+    sound.Ended:Connect(function()
+        sound:Destroy()
+    end)
+end
+
+playSound("2865227271")
+
+local ScreenGui = Instance.new("ScreenGui")
+ScreenGui.Name = "ELCDX_SuperRingGUI"
+ScreenGui.ResetOnSpawn = false
+ScreenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+ScreenGui.Parent = LocalPlayer:WaitForChild("PlayerGui")
+
+local MainFrame = Instance.new("Frame")
+MainFrame.Size = UDim2.new(0, 300, 0, 350)
+MainFrame.Position = UDim2.new(0.1, 0, 0.2, 0)
+MainFrame.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+MainFrame.BorderSizePixel = 2
+MainFrame.BorderColor3 = Color3.fromRGB(50, 50, 50)
+MainFrame.Parent = ScreenGui
+
+local ScrollBar = Instance.new("Frame")
+ScrollBar.Size = UDim2.new(0, 8, 1, -60)
+ScrollBar.Position = UDim2.new(1, -10, 0, 50)
+ScrollBar.BackgroundColor3 = Color3.fromRGB(80, 80, 80)
+ScrollBar.BorderSizePixel = 0
+ScrollBar.Parent = MainFrame
+
+local ScrollThumb = Instance.new("Frame")
+ScrollThumb.Size = UDim2.new(1, 0, 0.2, 0)
+ScrollThumb.Position = UDim2.new(0, 0, 0, 0)
+ScrollThumb.BackgroundColor3 = Color3.fromRGB(120, 120, 120)
+ScrollThumb.BorderSizePixel = 0
+ScrollThumb.Parent = ScrollBar
+
+local UICornerScroll = Instance.new("UICorner")
+UICornerScroll.CornerRadius = UDim.new(0, 4)
+UICornerScroll.Parent = ScrollBar
+
+local UICornerThumb = Instance.new("UICorner")
+UICornerThumb.CornerRadius = UDim.new(0, 4)
+UICornerThumb.Parent = ScrollThumb
+
+local UICorner = Instance.new("UICorner")
+UICorner.CornerRadius = UDim.new(0, 15)
+UICorner.Parent = MainFrame
+
+local TitleContainer = Instance.new("Frame")
+TitleContainer.Size = UDim2.new(1, 0, 0, 70)
+TitleContainer.Position = UDim2.new(0, 0, 0, 0)
+TitleContainer.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
+TitleContainer.BorderSizePixel = 0
+TitleContainer.Parent = MainFrame
+
+local TitleCorner = Instance.new("UICorner")
+TitleCorner.CornerRadius = UDim.new(0, 15)
+TitleCorner.Parent = TitleContainer
+
+local Title = Instance.new("TextLabel")
+Title.Size = UDim2.new(1, -20, 0, 35)
+Title.Position = UDim2.new(0, 10, 0, 5)
+Title.Text = "SUPER RING V1 ELCDX"
+Title.TextColor3 = Color3.fromRGB(255, 215, 0)
+Title.BackgroundTransparency = 1
+Title.Font = Enum.Font.GothamBold
+Title.TextSize = 20
+Title.TextStrokeTransparency = 0.8
+Title.Parent = TitleContainer
+
+local Subtitle = Instance.new("TextLabel")
+Subtitle.Size = UDim2.new(1, -20, 0, 25)
+Subtitle.Position = UDim2.new(0, 10, 0, 40)
+Subtitle.Text = "Natural Disaster"
+Subtitle.TextColor3 = Color3.fromRGB(220, 220, 220)
+Subtitle.BackgroundTransparency = 1
+Subtitle.Font = Enum.Font.Gotham
+Subtitle.TextSize = 16
+Subtitle.Parent = TitleContainer
+
+local ContentFrame = Instance.new("Frame")
+ContentFrame.Size = UDim2.new(1, -20, 1, -80)
+ContentFrame.Position = UDim2.new(0, 10, 0, 70)
+ContentFrame.BackgroundTransparency = 1
+ContentFrame.Parent = MainFrame
+
+local SuperRingToggle = Instance.new("TextButton")
+SuperRingToggle.Size = UDim2.new(1, 0, 0, 45)
+SuperRingToggle.Position = UDim2.new(0, 0, 0, 10)
+SuperRingToggle.Text = "SUPER RING: OFF"
+SuperRingToggle.BackgroundColor3 = Color3.fromRGB(200, 0, 0)
+SuperRingToggle.TextColor3 = Color3.fromRGB(255, 255, 255)
+SuperRingToggle.Font = Enum.Font.GothamBold
+SuperRingToggle.TextSize = 16
+SuperRingToggle.Parent = ContentFrame
+
+local ToggleCorner = Instance.new("UICorner")
+ToggleCorner.CornerRadius = UDim.new(0, 8)
+ToggleCorner.Parent = SuperRingToggle
+
+local FlyStatus = Instance.new("TextLabel")
+FlyStatus.Size = UDim2.new(1, 0, 0, 30)
+FlyStatus.Position = UDim2.new(0, 0, 0, 65)
+FlyStatus.Text = "FLY: INACTIVE"
+FlyStatus.TextColor3 = Color3.fromRGB(255, 100, 100)
+FlyStatus.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+FlyStatus.Font = Enum.Font.Gotham
+FlyStatus.TextSize = 14
+FlyStatus.Parent = ContentFrame
+
+local FlyCorner = Instance.new("UICorner")
+FlyCorner.CornerRadius = UDim.new(0, 6)
+FlyCorner.Parent = FlyStatus
+
+local RadiusContainer = Instance.new("Frame")
+RadiusContainer.Size = UDim2.new(1, 0, 0, 50)
+RadiusContainer.Position = UDim2.new(0, 0, 0, 105)
+RadiusContainer.BackgroundTransparency = 1
+RadiusContainer.Parent = ContentFrame
+
+local DecreaseRadius = Instance.new("TextButton")
+DecreaseRadius.Size = UDim2.new(0.2, 0, 1, 0)
+DecreaseRadius.Position = UDim2.new(0, 0, 0, 0)
+DecreaseRadius.Text = "-"
+DecreaseRadius.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
+DecreaseRadius.TextColor3 = Color3.fromRGB(255, 255, 255)
+DecreaseRadius.Font = Enum.Font.GothamBold
+DecreaseRadius.TextSize = 18
+DecreaseRadius.Parent = RadiusContainer
+
+local IncreaseRadius = Instance.new("TextButton")
+IncreaseRadius.Size = UDim2.new(0.2, 0, 1, 0)
+IncreaseRadius.Position = UDim2.new(0.8, 0, 0, 0)
+IncreaseRadius.Text = "+"
+IncreaseRadius.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
+IncreaseRadius.TextColor3 = Color3.fromRGB(255, 255, 255)
+IncreaseRadius.Font = Enum.Font.GothamBold
+IncreaseRadius.TextSize = 18
+IncreaseRadius.Parent = RadiusContainer
+
+local RadiusDisplay = Instance.new("TextLabel")
+RadiusDisplay.Size = UDim2.new(0.5, 0, 1, 0)
+RadiusDisplay.Position = UDim2.new(0.25, 0, 0, 0)
+RadiusDisplay.Text = "Radius: 50"
+RadiusDisplay.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+RadiusDisplay.TextColor3 = Color3.fromRGB(255, 255, 255)
+RadiusDisplay.Font = Enum.Font.Gotham
+RadiusDisplay.TextSize = 14
+RadiusDisplay.Parent = RadiusContainer
+
+local RadiusCorner = Instance.new("UICorner")
+RadiusCorner.CornerRadius = UDim.new(0, 6)
+RadiusCorner.Parent = RadiusDisplay
+
+local ButtonCorner = Instance.new("UICorner")
+ButtonCorner.CornerRadius = UDim.new(0, 6)
+ButtonCorner.Parent = DecreaseRadius
+ButtonCorner:Clone().Parent = IncreaseRadius
+
+local SpeedIncrease = Instance.new("TextButton")
+SpeedIncrease.Size = UDim2.new(0.2, 0, 0, 30)
+SpeedIncrease.Position = UDim2.new(0.7, 0, 0, 165)
+SpeedIncrease.Text = "+"
+SpeedIncrease.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
+SpeedIncrease.TextColor3 = Color3.fromRGB(255, 255, 255)
+SpeedIncrease.Font = Enum.Font.GothamBold
+SpeedIncrease.TextSize = 18
+SpeedIncrease.Parent = ContentFrame
+
+local SpeedDecrease = Instance.new("TextButton")
+SpeedDecrease.Size = UDim2.new(0.2, 0, 0, 30)
+SpeedDecrease.Position = UDim2.new(0.1, 0, 0, 165)
+SpeedDecrease.Text = "-"
+SpeedDecrease.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
+SpeedDecrease.TextColor3 = Color3.fromRGB(255, 255, 255)
+SpeedDecrease.Font = Enum.Font.GothamBold
+SpeedDecrease.TextSize = 18
+SpeedDecrease.Parent = ContentFrame
+
+local SpeedDisplay = Instance.new("TextLabel")
+SpeedDisplay.Size = UDim2.new(0.5, 0, 0, 30)
+SpeedDisplay.Position = UDim2.new(0.25, 0, 0, 165)
+SpeedDisplay.Text = "Fly Speed: 1"
+SpeedDisplay.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+SpeedDisplay.TextColor3 = Color3.fromRGB(255, 255, 255)
+SpeedDisplay.Font = Enum.Font.Gotham
+SpeedDisplay.TextSize = 14
+SpeedDisplay.Parent = ContentFrame
+
+local SpeedCorner = Instance.new("UICorner")
+SpeedCorner.CornerRadius = UDim.new(0, 6)
+SpeedCorner.Parent = SpeedDisplay
+SpeedCorner:Clone().Parent = SpeedIncrease
+SpeedCorner:Clone().Parent = SpeedDecrease
+
+local FlyToggleButton = Instance.new("TextButton")
+FlyToggleButton.Size = UDim2.new(1, 0, 0, 35)
+FlyToggleButton.Position = UDim2.new(0, 0, 0, 205)
+FlyToggleButton.Text = "TOGGLE FLY MANUALLY"
+FlyToggleButton.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
+FlyToggleButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+FlyToggleButton.Font = Enum.Font.Gotham
+FlyToggleButton.TextSize = 14
+FlyToggleButton.Parent = ContentFrame
+
+local FlyToggleCorner = Instance.new("UICorner")
+FlyToggleCorner.CornerRadius = UDim.new(0, 6)
+FlyToggleCorner.Parent = FlyToggleButton
+
+local CloseButton = Instance.new("TextButton")
+CloseButton.Size = UDim2.new(0, 25, 0, 25)
+CloseButton.Position = UDim2.new(1, -30, 0, 5)
+CloseButton.Text = "X"
+CloseButton.BackgroundColor3 = Color3.fromRGB(200, 0, 0)
+CloseButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+CloseButton.Font = Enum.Font.GothamBold
+CloseButton.TextSize = 14
+CloseButton.Parent = MainFrame
+
+local CloseCorner = Instance.new("UICorner")
+CloseCorner.CornerRadius = UDim.new(0, 12)
+CloseCorner.Parent = CloseButton
+
+local MinimizeButton = Instance.new("TextButton")
+MinimizeButton.Size = UDim2.new(0, 25, 0, 25)
+MinimizeButton.Position = UDim2.new(1, -60, 0, 5)
+MinimizeButton.Text = "_"
+MinimizeButton.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
+MinimizeButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+MinimizeButton.Font = Enum.Font.GothamBold
+MinimizeButton.TextSize = 14
+MinimizeButton.Parent = MainFrame
+
+local MinimizeCorner = Instance.new("UICorner")
+MinimizeCorner.CornerRadius = UDim.new(0, 12)
+MinimizeCorner.Parent = MinimizeButton
+
+local Watermark = Instance.new("TextLabel")
+Watermark.Size = UDim2.new(1, -10, 0, 20)
+Watermark.Position = UDim2.new(0, 5, 1, -25)
+Watermark.Text = "ELCDX Super Ring V1 | Natural Disaster"
+Watermark.TextColor3 = Color3.fromRGB(150, 150, 150)
+Watermark.BackgroundTransparency = 1
+Watermark.Font = Enum.Font.Gotham
+Watermark.TextSize = 12
+Watermark.Parent = MainFrame
+
+local minimized = false
+local ringPartsEnabled = false
+local flyEnabled = false
+local radius = 50
+local height = 100
+local rotationSpeed = 10
+local attractionStrength = 1000
+local flySpeeds = 1
+local tpwalking = false
+local flyConnection
+
+local scrollPosition = 0
+local maxScroll = 0
+
+local function updateScroll()
+    local contentSize = ContentFrame.AbsoluteSize.Y
+    local containerSize = MainFrame.AbsoluteSize.Y - 80
+    
+    if contentSize > containerSize then
+        maxScroll = contentSize - containerSize
+        ScrollBar.Visible = true
+        ScrollThumb.Size = UDim2.new(1, 0, containerSize/contentSize, 0)
+    else
+        ScrollBar.Visible = false
+        maxScroll = 0
+    end
+    
+    ContentFrame.Position = UDim2.new(0, 10, 0, 70 - scrollPosition)
+    ScrollThumb.Position = UDim2.new(0, 0, scrollPosition/maxScroll, 0)
+end
+
+UserInputService.InputChanged:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseWheel then
+        if ScrollBar.Visible then
+            scrollPosition = math.clamp(scrollPosition - input.Position.Z * 20, 0, maxScroll)
+            updateScroll()
+            
+            ScrollThumb.BackgroundColor3 = Color3.fromRGB(160, 160, 160)
+            wait(0.3)
+            ScrollThumb.BackgroundColor3 = Color3.fromRGB(120, 120, 120)
+        end
+    end
+end)
+
+local dragging
+local dragInput
+local dragStart
+local startPos
+
+local function update(input)
+    local delta = input.Position - dragStart
+    MainFrame.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
+end
+
+TitleContainer.InputBegan:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseButton1 then
+        dragging = true
+        dragStart = input.Position
+        startPos = MainFrame.Position
+        
+        input.Changed:Connect(function()
+            if input.UserInputState == Enum.UserInputState.End then
+                dragging = false
+            end
+        end)
+    end
+end)
+
+TitleContainer.InputChanged:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseMovement then
+        dragInput = input
+    end
+end)
+
+UserInputService.InputChanged:Connect(function(input)
+    if input == dragInput and dragging then
+        update(input)
+    end
+end)
+
+CloseButton.MouseButton1Click:Connect(function()
+    ScreenGui:Destroy()
+    playSound("12221967")
+end)
+
+MinimizeButton.MouseButton1Click:Connect(function()
+    minimized = not minimized
+    if minimized then
+        ContentFrame.Visible = false
+        ScrollBar.Visible = false
+        MainFrame.Size = UDim2.new(0, 300, 0, 70)
+        MinimizeButton.Text = "+"
+    else
+        ContentFrame.Visible = true
+        MainFrame.Size = UDim2.new(0, 300, 0, 350)
+        MinimizeButton.Text = "_"
+        updateScroll()
+    end
+    playSound("12221967")
+end)
+
+if not getgenv().Network then
+    getgenv().Network = {
+        BaseParts = {},
+        Velocity = Vector3.new(14.46262424, 14.46262424, 14.46262424)
+    }
+    Network.RetainPart = function(Part)
+        if typeof(Part) == "Instance" and Part:IsA("BasePart") and Part:IsDescendantOf(workspace) then
+            table.insert(Network.BaseParts, Part)
+            Part.CustomPhysicalProperties = PhysicalProperties.new(0, 0, 0, 0, 0)
+            Part.CanCollide = false
+        end
+    end
+    local function EnablePartControl()
+        LocalPlayer.ReplicationFocus = workspace
+        RunService.Heartbeat:Connect(function()
+            sethiddenproperty(LocalPlayer, "SimulationRadius", math.huge)
+            for _, Part in pairs(Network.BaseParts) do
+                if Part:IsDescendantOf(workspace) then
+                    Part.Velocity = Network.Velocity
+                end
+            end
+        end)
+    end
+    EnablePartControl()
+end
+
+local parts = {}
+local function addPart(part)
+    if part:IsA("BasePart") and not part.Anchored and part:IsDescendantOf(workspace) then
+        if part.Parent == LocalPlayer.Character or part:IsDescendantOf(LocalPlayer.Character) then
+            return false
+        end
+
+        part.CustomPhysicalProperties = PhysicalProperties.new(0, 0, 0, 0, 0)
+        part.CanCollide = false
+        
+        if not table.find(parts, part) then
+            table.insert(parts, part)
+        end
+        return true
+    end
+    return false
+end
+
+local function removePart(part)
+    local index = table.find(parts, part)
+    if index then
+        table.remove(parts, index)
+    end
+end
+
+for _, part in pairs(workspace:GetDescendants()) do
+    addPart(part)
+end
+
+workspace.DescendantAdded:Connect(addPart)
+workspace.DescendantRemoving:Connect(removePart)
+
+local function updateFlySystem()
+    if flyEnabled then
+        local speaker = game:GetService("Players").LocalPlayer
+        local character = speaker.Character
+        
+        if not character or not character:FindFirstChild("Humanoid") then
+            spawn(function()
+                wait(1)
+                if flyEnabled then
+                    updateFlySystem()
+                end
+            end)
+            return
+        end
+        
+        local humanoid = character.Humanoid
+        
+        tpwalking = true
+        for i = 1, flySpeeds do
+            spawn(function()
+                local hb = game:GetService("RunService").Heartbeat
+                local chr = character
+                local hum = humanoid
+                while tpwalking and hb:Wait() and chr and hum and hum.Parent do
+                    if hum.MoveDirection.Magnitude > 0 then
+                        chr:TranslateBy(hum.MoveDirection)
+                    end
+                end
+            end)
+        end
+        
+        if character:FindFirstChild("Animate") then
+            character.Animate.Disabled = true
+        end
+        
+        humanoid:SetStateEnabled(Enum.HumanoidStateType.Climbing, false)
+        humanoid:SetStateEnabled(Enum.HumanoidStateType.FallingDown, false)
+        humanoid:SetStateEnabled(Enum.HumanoidStateType.Flying, false)
+        humanoid:SetStateEnabled(Enum.HumanoidStateType.Freefall, false)
+        humanoid:SetStateEnabled(Enum.HumanoidStateType.GettingUp, false)
+        humanoid:SetStateEnabled(Enum.HumanoidStateType.Jumping, false)
+        humanoid:SetStateEnabled(Enum.HumanoidStateType.Landed, false)
+        humanoid:SetStateEnabled(Enum.HumanoidStateType.Physics, false)
+        humanoid:SetStateEnabled(Enum.HumanoidStateType.PlatformStanding, false)
+        humanoid:SetStateEnabled(Enum.HumanoidStateType.Ragdoll, false)
+        humanoid:SetStateEnabled(Enum.HumanoidStateType.Running, false)
+        humanoid:SetStateEnabled(Enum.HumanoidStateType.RunningNoPhysics, false)
+        humanoid:SetStateEnabled(Enum.HumanoidStateType.Seated, false)
+        humanoid:SetStateEnabled(Enum.HumanoidStateType.StrafingNoPhysics, false)
+        humanoid:SetStateEnabled(Enum.HumanoidStateType.Swimming, false)
+        humanoid:ChangeState(Enum.HumanoidStateType.Swimming)
+        
+        if humanoid.RigType == Enum.HumanoidRigType.R15 then
+            local upperTorso = character:FindFirstChild("UpperTorso")
+            if upperTorso then
+                local ctrl = {f = 0, b = 0, l = 0, r = 0}
+                local lastctrl = {f = 0, b = 0, l = 0, r = 0}
+                local maxspeed = 50
+                local speed = 0
+
+                local bg = Instance.new("BodyGyro", upperTorso)
+                bg.P = 9e4
+                bg.maxTorque = Vector3.new(9e9, 9e9, 9e9)
+                bg.cframe = upperTorso.CFrame
+                
+                local bv = Instance.new("BodyVelocity", upperTorso)
+                bv.velocity = Vector3.new(0, 0.1, 0)
+                bv.maxForce = Vector3.new(9e9, 9e9, 9e9)
+                
+                humanoid.PlatformStand = true
+                
+                getgenv().FlyObjects = {bg, bv}
+                
+                spawn(function()
+                    while flyEnabled and character and humanoid.Health > 0 do
+                        RunService.RenderStepped:Wait()
+
+                        if ctrl.l + ctrl.r ~= 0 or ctrl.f + ctrl.b ~= 0 then
+                            speed = speed + 0.5 + (speed/maxspeed)
+                            if speed > maxspeed then
+                                speed = maxspeed
+                            end
+                        elseif not (ctrl.l + ctrl.r ~= 0 or ctrl.f + ctrl.b ~= 0) and speed ~= 0 then
+                            speed = speed - 1
+                            if speed < 0 then
+                                speed = 0
+                            end
+                        end
+                        
+                        if (ctrl.l + ctrl.r) ~= 0 or (ctrl.f + ctrl.b) ~= 0 then
+                            bv.velocity = ((workspace.CurrentCamera.CoordinateFrame.lookVector * (ctrl.f+ctrl.b)) + 
+                                         ((workspace.CurrentCamera.CoordinateFrame * CFrame.new(ctrl.l+ctrl.r, (ctrl.f+ctrl.b)*0.2, 0).p) - 
+                                         workspace.CurrentCamera.CoordinateFrame.p)) * speed
+                            lastctrl = {f = ctrl.f, b = ctrl.b, l = ctrl.l, r = ctrl.r}
+                        elseif (ctrl.l + ctrl.r) == 0 and (ctrl.f + ctrl.b) == 0 and speed ~= 0 then
+                            bv.velocity = ((workspace.CurrentCamera.CoordinateFrame.lookVector * (lastctrl.f+lastctrl.b)) + 
+                                         ((workspace.CurrentCamera.CoordinateFrame * CFrame.new(lastctrl.l+lastctrl.r, (lastctrl.f+lastctrl.b)*0.2, 0).p) - 
+                                         workspace.CurrentCamera.CoordinateFrame.p)) * speed
+                        else
+                            bv.velocity = Vector3.new(0, 0.1, 0)
+                        end
+
+                        bg.cframe = workspace.CurrentCamera.CoordinateFrame * CFrame.Angles(-math.rad((ctrl.f+ctrl.b)*50*speed/maxspeed), 0, 0)
+                    end
+                    
+                    if bg then bg:Destroy() end
+                    if bv then bv:Destroy() end
+                end)
+                
+                if flyConnection then
+                    flyConnection:Disconnect()
+                end
+                
+                flyConnection = UserInputService.InputBegan:Connect(function(input)
+                    if input.KeyCode == Enum.KeyCode.W then
+                        ctrl.f = 1
+                    elseif input.KeyCode == Enum.KeyCode.S then
+                        ctrl.b = -1
+                    elseif input.KeyCode == Enum.KeyCode.A then
+                        ctrl.l = -1
+                    elseif input.KeyCode == Enum.KeyCode.D then
+                        ctrl.r = 1
+                    end
+                end)
+
+                local inputEndConnection = UserInputService.InputEnded:Connect(function(input)
+                    if input.KeyCode == Enum.KeyCode.W then
+                        ctrl.f = 0
+                    elseif input.KeyCode == Enum.KeyCode.S then
+                        ctrl.b = 0
+                    elseif input.KeyCode == Enum.KeyCode.A then
+                        ctrl.l = 0
+                    elseif input.KeyCode == Enum.KeyCode.D then
+                        ctrl.r = 0
+                    end
+                end)
+
+                getgenv().FlyConnections = {flyConnection, inputEndConnection}
+            end
+        end
+        
+    else
+        tpwalking = false
+        
+        if flyConnection then
+            flyConnection:Disconnect()
+            flyConnection = nil
+        end
+        
+        if getgenv().FlyConnections then
+            for _, conn in pairs(getgenv().FlyConnections) do
+                if conn then
+                    conn:Disconnect()
+                end
+            end
+            getgenv().FlyConnections = nil
+        end
+        
+        if getgenv().FlyObjects then
+            for _, obj in pairs(getgenv().FlyObjects) do
+                if obj and obj.Parent then
+                    obj:Destroy()
+                end
+            end
+            getgenv().FlyObjects = nil
+        end
+        
+        local character = game.Players.LocalPlayer.Character
+        if character and character:FindFirstChild("Humanoid") then
+            character.Humanoid.PlatformStand = false
+            if character:FindFirstChild("Animate") then
+                character.Animate.Disabled = false
+            end
+        end
+    end
+end
+
+SuperRingToggle.MouseButton1Click:Connect(function()
+    ringPartsEnabled = not ringPartsEnabled
+    
+    if ringPartsEnabled then
+        SuperRingToggle.Text = "SUPER RING: ON"
+        SuperRingToggle.BackgroundColor3 = Color3.fromRGB(0, 200, 0)
+        
+        if not flyEnabled then
+            flyEnabled = true
+            FlyStatus.Text = "FLY: ACTIVE"
+            FlyStatus.TextColor3 = Color3.fromRGB(100, 255, 100)
+            
+            spawn(function()
+                wait(0.1)
+                updateFlySystem()
+            end)
+        end
+    else
+        SuperRingToggle.Text = "SUPER RING: OFF"
+        SuperRingToggle.BackgroundColor3 = Color3.fromRGB(200, 0, 0)
+    end
+    
+    playSound("12221967")
+end)
+
+FlyToggleButton.MouseButton1Click:Connect(function()
+    flyEnabled = not flyEnabled
+    if flyEnabled then
+        FlyStatus.Text = "FLY: ACTIVE"
+        FlyStatus.TextColor3 = Color3.fromRGB(100, 255, 100)
+        FlyToggleButton.Text = "FLY: ON"
+        FlyToggleButton.BackgroundColor3 = Color3.fromRGB(0, 100, 0)
+    else
+        FlyStatus.Text = "FLY: INACTIVE"
+        FlyStatus.TextColor3 = Color3.fromRGB(255, 100, 100)
+        FlyToggleButton.Text = "FLY: OFF"
+        FlyToggleButton.BackgroundColor3 = Color3.fromRGB(100, 0, 0)
+    end
+    updateFlySystem()
+    playSound("12221967")
+end)
+
+DecreaseRadius.MouseButton1Click:Connect(function()
+    radius = math.max(10, radius - 5)
+    RadiusDisplay.Text = "Radius: " .. radius
+    playSound("12221967")
+end)
+
+IncreaseRadius.MouseButton1Click:Connect(function()
+    radius = math.min(100, radius + 5)
+    RadiusDisplay.Text = "Radius: " .. radius
+    playSound("12221967")
+end)
+
+SpeedIncrease.MouseButton1Click:Connect(function()
+    flySpeeds = math.min(5, flySpeeds + 1)
+    SpeedDisplay.Text = "Fly Speed: " .. flySpeeds
+    if flyEnabled then
+        updateFlySystem()
+    end
+    playSound("12221967")
+end)
+
+SpeedDecrease.MouseButton1Click:Connect(function()
+    flySpeeds = math.max(1, flySpeeds - 1)
+    SpeedDisplay.Text = "Fly Speed: " .. flySpeeds
+    if flyEnabled then
+        updateFlySystem()
+    end
+    playSound("12221967")
+end)
+
+RunService.Heartbeat:Connect(function()
+    if not ringPartsEnabled then return end
+    
+    local humanoidRootPart = LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart")
+    if humanoidRootPart then
+        local tornadoCenter = humanoidRootPart.Position
+        for _, part in pairs(parts) do
+            if part and part.Parent and not part.Anchored and part:IsDescendantOf(workspace) then
+                local pos = part.Position
+                local distance = (Vector3.new(pos.X, tornadoCenter.Y, pos.Z) - tornadoCenter).Magnitude
+                local angle = math.atan2(pos.Z - tornadoCenter.Z, pos.X - tornadoCenter.X)
+                local newAngle = angle + math.rad(rotationSpeed)
+                local targetPos = Vector3.new(
+                    tornadoCenter.X + math.cos(newAngle) * math.min(radius, distance),
+                    tornadoCenter.Y + (height * (math.abs(math.sin((pos.Y - tornadoCenter.Y) / height)))),
+                    tornadoCenter.Z + math.sin(newAngle) * math.min(radius, distance)
+                )
+                local directionToTarget = (targetPos - part.Position).unit
+                part.Velocity = directionToTarget * attractionStrength
+            end
+        end
+    end
+end)
+
+updateScroll()
+
+StarterGui:SetCore("SendNotification", {
+    Title = "ELCDX Super Ring V1",
+    Text = "Natural Disaster Mode Activated!",
+    Duration = 5
+})
+
+local function SendChatMessage(message)
+    if TextChatService.ChatVersion == Enum.ChatVersion.TextChatService then
+        local textChannel = TextChatService.TextChannels.RBXGeneral
+        textChannel:SendAsync(message)
+    else
+        game:GetService("ReplicatedStorage").DefaultChatSystemChatEvents.SayMessageRequest:FireServer(message, "All")
+    end
+end
+
+SendChatMessage("ELCDX Super Ring V1 - Natural Disaster Activated! 🌀")
+
+game:GetService("Players").LocalPlayer.CharacterAdded:Connect(function(char)
+    wait(1)
+    if game.Players.LocalPlayer.Character then
+        game.Players.LocalPlayer.Character.Humanoid.PlatformStand = false
+        game.Players.LocalPlayer.Character.Animate.Disabled = false
+    end
+end)
+
+StarterGui:SetCore("SendNotification", {
+    Title = "SUPER RING V1 ELCDX",
+    Text = "Cracked By Projeto LKB",
+    Duration = 5
+})
+
+SendChatMessage("Super Ring Parts Cracked By ELCDX !")
