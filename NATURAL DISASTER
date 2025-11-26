@@ -171,56 +171,6 @@ ButtonCorner.CornerRadius = UDim.new(0, 6)
 ButtonCorner.Parent = DecreaseRadius
 ButtonCorner:Clone().Parent = IncreaseRadius
 
-local SpeedIncrease = Instance.new("TextButton")
-SpeedIncrease.Size = UDim2.new(0.2, 0, 0, 30)
-SpeedIncrease.Position = UDim2.new(0.7, 0, 0, 165)
-SpeedIncrease.Text = "+"
-SpeedIncrease.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
-SpeedIncrease.TextColor3 = Color3.fromRGB(255, 255, 255)
-SpeedIncrease.Font = Enum.Font.GothamBold
-SpeedIncrease.TextSize = 18
-SpeedIncrease.Parent = ContentFrame
-
-local SpeedDecrease = Instance.new("TextButton")
-SpeedDecrease.Size = UDim2.new(0.2, 0, 0, 30)
-SpeedDecrease.Position = UDim2.new(0.1, 0, 0, 165)
-SpeedDecrease.Text = "-"
-SpeedDecrease.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
-SpeedDecrease.TextColor3 = Color3.fromRGB(255, 255, 255)
-SpeedDecrease.Font = Enum.Font.GothamBold
-SpeedDecrease.TextSize = 18
-SpeedDecrease.Parent = ContentFrame
-
-local SpeedDisplay = Instance.new("TextLabel")
-SpeedDisplay.Size = UDim2.new(0.5, 0, 0, 30)
-SpeedDisplay.Position = UDim2.new(0.25, 0, 0, 165)
-SpeedDisplay.Text = "Fly Speed: 1"
-SpeedDisplay.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
-SpeedDisplay.TextColor3 = Color3.fromRGB(255, 255, 255)
-SpeedDisplay.Font = Enum.Font.Gotham
-SpeedDisplay.TextSize = 14
-SpeedDisplay.Parent = ContentFrame
-
-local SpeedCorner = Instance.new("UICorner")
-SpeedCorner.CornerRadius = UDim.new(0, 6)
-SpeedCorner.Parent = SpeedDisplay
-SpeedCorner:Clone().Parent = SpeedIncrease
-SpeedCorner:Clone().Parent = SpeedDecrease
-
-local FlyToggleButton = Instance.new("TextButton")
-FlyToggleButton.Size = UDim2.new(1, 0, 0, 35)
-FlyToggleButton.Position = UDim2.new(0, 0, 0, 205)
-FlyToggleButton.Text = "TOGGLE FLY MANUALLY"
-FlyToggleButton.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
-FlyToggleButton.TextColor3 = Color3.fromRGB(255, 255, 255)
-FlyToggleButton.Font = Enum.Font.Gotham
-FlyToggleButton.TextSize = 14
-FlyToggleButton.Parent = ContentFrame
-
-local FlyToggleCorner = Instance.new("UICorner")
-FlyToggleCorner.CornerRadius = UDim.new(0, 6)
-FlyToggleCorner.Parent = FlyToggleButton
-
 local CloseButton = Instance.new("TextButton")
 CloseButton.Size = UDim2.new(0, 25, 0, 25)
 CloseButton.Position = UDim2.new(1, -30, 0, 5)
@@ -419,14 +369,14 @@ workspace.DescendantAdded:Connect(addPart)
 workspace.DescendantRemoving:Connect(removePart)
 
 local function updateFlySystem()
-    if flyEnabled then
+    if flyEnabled and ringPartsEnabled then
         local speaker = game:GetService("Players").LocalPlayer
         local character = speaker.Character
         
         if not character or not character:FindFirstChild("Humanoid") then
             spawn(function()
                 wait(1)
-                if flyEnabled then
+                if flyEnabled and ringPartsEnabled then
                     updateFlySystem()
                 end
             end)
@@ -441,7 +391,7 @@ local function updateFlySystem()
                 local hb = game:GetService("RunService").Heartbeat
                 local chr = character
                 local hum = humanoid
-                while tpwalking and hb:Wait() and chr and hum and hum.Parent do
+                while tpwalking and hb:Wait() and chr and hum and hum.Parent and flyEnabled and ringPartsEnabled do
                     if hum.MoveDirection.Magnitude > 0 then
                         chr:TranslateBy(hum.MoveDirection)
                     end
@@ -492,7 +442,7 @@ local function updateFlySystem()
                 getgenv().FlyObjects = {bg, bv}
                 
                 spawn(function()
-                    while flyEnabled and character and humanoid.Health > 0 do
+                    while flyEnabled and ringPartsEnabled and character and humanoid.Health > 0 do
                         RunService.RenderStepped:Wait()
 
                         if ctrl.l + ctrl.r ~= 0 or ctrl.f + ctrl.b ~= 0 then
@@ -602,38 +552,24 @@ SuperRingToggle.MouseButton1Click:Connect(function()
         SuperRingToggle.Text = "SUPER RING: ON"
         SuperRingToggle.BackgroundColor3 = Color3.fromRGB(0, 200, 0)
         
-        if not flyEnabled then
-            flyEnabled = true
-            FlyStatus.Text = "FLY: ACTIVE"
-            FlyStatus.TextColor3 = Color3.fromRGB(100, 255, 100)
-            
-            spawn(function()
-                wait(0.1)
-                updateFlySystem()
-            end)
-        end
+        flyEnabled = true
+        FlyStatus.Text = "FLY: ACTIVE"
+        FlyStatus.TextColor3 = Color3.fromRGB(100, 255, 100)
+        
+        spawn(function()
+            wait(0.1)
+            updateFlySystem()
+        end)
     else
         SuperRingToggle.Text = "SUPER RING: OFF"
         SuperRingToggle.BackgroundColor3 = Color3.fromRGB(200, 0, 0)
-    end
-    
-    playSound("12221967")
-end)
-
-FlyToggleButton.MouseButton1Click:Connect(function()
-    flyEnabled = not flyEnabled
-    if flyEnabled then
-        FlyStatus.Text = "FLY: ACTIVE"
-        FlyStatus.TextColor3 = Color3.fromRGB(100, 255, 100)
-        FlyToggleButton.Text = "FLY: ON"
-        FlyToggleButton.BackgroundColor3 = Color3.fromRGB(0, 100, 0)
-    else
+        
+        flyEnabled = false
         FlyStatus.Text = "FLY: INACTIVE"
         FlyStatus.TextColor3 = Color3.fromRGB(255, 100, 100)
-        FlyToggleButton.Text = "FLY: OFF"
-        FlyToggleButton.BackgroundColor3 = Color3.fromRGB(100, 0, 0)
+        updateFlySystem()
     end
-    updateFlySystem()
+    
     playSound("12221967")
 end)
 
@@ -646,24 +582,6 @@ end)
 IncreaseRadius.MouseButton1Click:Connect(function()
     radius = math.min(100, radius + 5)
     RadiusDisplay.Text = "Radius: " .. radius
-    playSound("12221967")
-end)
-
-SpeedIncrease.MouseButton1Click:Connect(function()
-    flySpeeds = math.min(5, flySpeeds + 1)
-    SpeedDisplay.Text = "Fly Speed: " .. flySpeeds
-    if flyEnabled then
-        updateFlySystem()
-    end
-    playSound("12221967")
-end)
-
-SpeedDecrease.MouseButton1Click:Connect(function()
-    flySpeeds = math.max(1, flySpeeds - 1)
-    SpeedDisplay.Text = "Fly Speed: " .. flySpeeds
-    if flyEnabled then
-        updateFlySystem()
-    end
     playSound("12221967")
 end)
 
@@ -708,7 +626,7 @@ local function SendChatMessage(message)
     end
 end
 
-SendChatMessage("ELCDX Super Ring V1 - Natural Disaster Activated! 🌀")
+SendChatMessage("ELCDX DOMINA !")
 
 game:GetService("Players").LocalPlayer.CharacterAdded:Connect(function(char)
     wait(1)
@@ -716,12 +634,14 @@ game:GetService("Players").LocalPlayer.CharacterAdded:Connect(function(char)
         game.Players.LocalPlayer.Character.Humanoid.PlatformStand = false
         game.Players.LocalPlayer.Character.Animate.Disabled = false
     end
+    if ringPartsEnabled then
+        flyEnabled = true
+        updateFlySystem()
+    end
 end)
 
 StarterGui:SetCore("SendNotification", {
     Title = "SUPER RING V1 ELCDX",
-    Text = "Cracked By Projeto LKB",
+    Text = "Cracked By ELCDX!",
     Duration = 5
 })
-
-SendChatMessage("Super Ring Parts Cracked By ELCDX !")
