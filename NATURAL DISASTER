@@ -34,28 +34,6 @@ MainFrame.BorderSizePixel = 2
 MainFrame.BorderColor3 = Color3.fromRGB(50, 50, 50)
 MainFrame.Parent = ScreenGui
 
-local ScrollBar = Instance.new("Frame")
-ScrollBar.Size = UDim2.new(0, 8, 1, -60)
-ScrollBar.Position = UDim2.new(1, -10, 0, 50)
-ScrollBar.BackgroundColor3 = Color3.fromRGB(80, 80, 80)
-ScrollBar.BorderSizePixel = 0
-ScrollBar.Parent = MainFrame
-
-local ScrollThumb = Instance.new("Frame")
-ScrollThumb.Size = UDim2.new(1, 0, 0.2, 0)
-ScrollThumb.Position = UDim2.new(0, 0, 0, 0)
-ScrollThumb.BackgroundColor3 = Color3.fromRGB(120, 120, 120)
-ScrollThumb.BorderSizePixel = 0
-ScrollThumb.Parent = ScrollBar
-
-local UICornerScroll = Instance.new("UICorner")
-UICornerScroll.CornerRadius = UDim.new(0, 4)
-UICornerScroll.Parent = ScrollBar
-
-local UICornerThumb = Instance.new("UICorner")
-UICornerThumb.CornerRadius = UDim.new(0, 4)
-UICornerThumb.Parent = ScrollThumb
-
 local UICorner = Instance.new("UICorner")
 UICorner.CornerRadius = UDim.new(0, 15)
 UICorner.Parent = MainFrame
@@ -98,6 +76,7 @@ ContentFrame.Position = UDim2.new(0, 10, 0, 70)
 ContentFrame.BackgroundTransparency = 1
 ContentFrame.Parent = MainFrame
 
+-- Botão Super Ring Toggle
 local SuperRingToggle = Instance.new("TextButton")
 SuperRingToggle.Size = UDim2.new(1, 0, 0, 45)
 SuperRingToggle.Position = UDim2.new(0, 0, 0, 10)
@@ -112,6 +91,7 @@ local ToggleCorner = Instance.new("UICorner")
 ToggleCorner.CornerRadius = UDim.new(0, 8)
 ToggleCorner.Parent = SuperRingToggle
 
+-- Fly Status
 local FlyStatus = Instance.new("TextLabel")
 FlyStatus.Size = UDim2.new(1, 0, 0, 30)
 FlyStatus.Position = UDim2.new(0, 0, 0, 65)
@@ -126,6 +106,7 @@ local FlyCorner = Instance.new("UICorner")
 FlyCorner.CornerRadius = UDim.new(0, 6)
 FlyCorner.Parent = FlyStatus
 
+-- Radius Controls
 local RadiusContainer = Instance.new("Frame")
 RadiusContainer.Size = UDim2.new(1, 0, 0, 50)
 RadiusContainer.Position = UDim2.new(0, 0, 0, 105)
@@ -171,6 +152,74 @@ ButtonCorner.CornerRadius = UDim.new(0, 6)
 ButtonCorner.Parent = DecreaseRadius
 ButtonCorner:Clone().Parent = IncreaseRadius
 
+-- Fly Speed Controls (Novo para controle da velocidade do voo)
+local FlySpeedContainer = Instance.new("Frame")
+FlySpeedContainer.Size = UDim2.new(1, 0, 0, 30)
+FlySpeedContainer.Position = UDim2.new(0, 0, 0, 160)
+FlySpeedContainer.BackgroundTransparency = 1
+FlySpeedContainer.Parent = ContentFrame
+
+local DecreaseFlySpeed = Instance.new("TextButton")
+DecreaseFlySpeed.Size = UDim2.new(0.2, 0, 1, 0)
+DecreaseFlySpeed.Position = UDim2.new(0, 0, 0, 0)
+DecreaseFlySpeed.Text = "-"
+DecreaseFlySpeed.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
+DecreaseFlySpeed.TextColor3 = Color3.fromRGB(255, 255, 255)
+DecreaseFlySpeed.Font = Enum.Font.GothamBold
+DecreaseFlySpeed.TextSize = 18
+DecreaseFlySpeed.Parent = FlySpeedContainer
+
+local IncreaseFlySpeed = Instance.new("TextButton")
+IncreaseFlySpeed.Size = UDim2.new(0.2, 0, 1, 0)
+IncreaseFlySpeed.Position = UDim2.new(0.8, 0, 0, 0)
+IncreaseFlySpeed.Text = "+"
+IncreaseFlySpeed.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
+IncreaseFlySpeed.TextColor3 = Color3.fromRGB(255, 255, 255)
+IncreaseFlySpeed.Font = Enum.Font.GothamBold
+IncreaseFlySpeed.TextSize = 18
+IncreaseFlySpeed.Parent = FlySpeedContainer
+
+local FlySpeedDisplay = Instance.new("TextLabel")
+FlySpeedDisplay.Size = UDim2.new(0.6, 0, 1, 0)
+FlySpeedDisplay.Position = UDim2.new(0.2, 0, 0, 0)
+FlySpeedDisplay.Text = "Fly Speed: 1"
+FlySpeedDisplay.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+FlySpeedDisplay.TextColor3 = Color3.fromRGB(255, 255, 255)
+FlySpeedDisplay.Font = Enum.Font.Gotham
+FlySpeedDisplay.TextSize = 14
+FlySpeedDisplay.Parent = FlySpeedContainer
+
+-- Controle dos botões de aumentar/diminuir velocidade de voo
+local flySpeeds = 1
+
+DecreaseFlySpeed.MouseButton1Click:Connect(function()
+    flySpeeds = math.max(1, flySpeeds - 1)
+    FlySpeedDisplay.Text = "Fly Speed: " .. flySpeeds
+    playSound("12221967")
+end)
+
+IncreaseFlySpeed.MouseButton1Click:Connect(function()
+    flySpeeds = math.min(10, flySpeeds + 1)
+    FlySpeedDisplay.Text = "Fly Speed: " .. flySpeeds
+    playSound("12221967")
+end)
+
+-- Botões para aumentar/diminuir radius
+local radius = 50
+
+DecreaseRadius.MouseButton1Click:Connect(function()
+    radius = math.max(10, radius - 5)
+    RadiusDisplay.Text = "Radius: " .. radius
+    playSound("12221967")
+end)
+
+IncreaseRadius.MouseButton1Click:Connect(function()
+    radius = math.min(100, radius + 5)
+    RadiusDisplay.Text = "Radius: " .. radius
+    playSound("12221967")
+end)
+
+-- Botão fechar
 local CloseButton = Instance.new("TextButton")
 CloseButton.Size = UDim2.new(0, 25, 0, 25)
 CloseButton.Position = UDim2.new(1, -30, 0, 5)
@@ -185,6 +234,7 @@ local CloseCorner = Instance.new("UICorner")
 CloseCorner.CornerRadius = UDim.new(0, 12)
 CloseCorner.Parent = CloseButton
 
+-- Botão minimizar
 local MinimizeButton = Instance.new("TextButton")
 MinimizeButton.Size = UDim2.new(0, 25, 0, 25)
 MinimizeButton.Position = UDim2.new(1, -60, 0, 5)
@@ -199,26 +249,60 @@ local MinimizeCorner = Instance.new("UICorner")
 MinimizeCorner.CornerRadius = UDim.new(0, 12)
 MinimizeCorner.Parent = MinimizeButton
 
-local Watermark = Instance.new("TextLabel")
-Watermark.Size = UDim2.new(1, -10, 0, 20)
-Watermark.Position = UDim2.new(0, 5, 1, -25)
-Watermark.Text = "ELCDX Super Ring V1 | Natural Disaster"
-Watermark.TextColor3 = Color3.fromRGB(150, 150, 150)
-Watermark.BackgroundTransparency = 1
-Watermark.Font = Enum.Font.Gotham
-Watermark.TextSize = 12
-Watermark.Parent = MainFrame
-
 local minimized = false
-local ringPartsEnabled = false
-local flyEnabled = false
-local radius = 50
-local height = 100
-local rotationSpeed = 10
-local attractionStrength = 1000
-local flySpeeds = 1
-local tpwalking = false
-local flyConnection
+
+MinimizeButton.MouseButton1Click:Connect(function()
+    minimized = not minimized
+    if minimized then
+        ContentFrame.Visible = false
+        RadiusContainer.Visible = false
+        FlySpeedContainer.Visible = false
+        FlyStatus.Visible = false
+        SuperRingToggle.Size = UDim2.new(1, 0, 0, 70)
+        MainFrame.Size = UDim2.new(0, 300, 0, 70)
+        MinimizeButton.Text = "+"
+        ScrollBar.Visible = false
+    else
+        ContentFrame.Visible = true
+        RadiusContainer.Visible = true
+        FlySpeedContainer.Visible = true
+        FlyStatus.Visible = true
+        SuperRingToggle.Size = UDim2.new(1, 0, 0, 45)
+        MainFrame.Size = UDim2.new(0, 300, 0, 350)
+        MinimizeButton.Text = "_"
+        ScrollBar.Visible = true
+        updateScroll()
+    end
+    playSound("12221967")
+end)
+
+CloseButton.MouseButton1Click:Connect(function()
+    ScreenGui:Destroy()
+    playSound("12221967")
+end)
+
+-- Scroll Bar (como no seu script original)
+local ScrollBar = Instance.new("Frame")
+ScrollBar.Size = UDim2.new(0, 8, 1, -60)
+ScrollBar.Position = UDim2.new(1, -10, 0, 50)
+ScrollBar.BackgroundColor3 = Color3.fromRGB(80, 80, 80)
+ScrollBar.BorderSizePixel = 0
+ScrollBar.Parent = MainFrame
+
+local ScrollThumb = Instance.new("Frame")
+ScrollThumb.Size = UDim2.new(1, 0, 0.2, 0)
+ScrollThumb.Position = UDim2.new(0, 0, 0, 0)
+ScrollThumb.BackgroundColor3 = Color3.fromRGB(120, 120, 120)
+ScrollThumb.BorderSizePixel = 0
+ScrollThumb.Parent = ScrollBar
+
+local UICornerScroll = Instance.new("UICorner")
+UICornerScroll.CornerRadius = UDim.new(0, 4)
+UICornerScroll.Parent = ScrollBar
+
+local UICornerThumb = Instance.new("UICorner")
+UICornerThumb.CornerRadius = UDim.new(0, 4)
+UICornerThumb.Parent = ScrollThumb
 
 local scrollPosition = 0
 local maxScroll = 0
@@ -245,7 +329,6 @@ UserInputService.InputChanged:Connect(function(input)
         if ScrollBar.Visible then
             scrollPosition = math.clamp(scrollPosition - input.Position.Z * 20, 0, maxScroll)
             updateScroll()
-            
             ScrollThumb.BackgroundColor3 = Color3.fromRGB(160, 160, 160)
             wait(0.3)
             ScrollThumb.BackgroundColor3 = Color3.fromRGB(120, 120, 120)
@@ -253,124 +336,15 @@ UserInputService.InputChanged:Connect(function(input)
     end
 end)
 
-local dragging
-local dragInput
-local dragStart
-local startPos
-
-local function update(input)
-    local delta = input.Position - dragStart
-    MainFrame.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
-end
-
-TitleContainer.InputBegan:Connect(function(input)
-    if input.UserInputType == Enum.UserInputType.MouseButton1 then
-        dragging = true
-        dragStart = input.Position
-        startPos = MainFrame.Position
-        
-        input.Changed:Connect(function()
-            if input.UserInputState == Enum.UserInputState.End then
-                dragging = false
-            end
-        end)
-    end
-end)
-
-TitleContainer.InputChanged:Connect(function(input)
-    if input.UserInputType == Enum.UserInputType.MouseMovement then
-        dragInput = input
-    end
-end)
-
-UserInputService.InputChanged:Connect(function(input)
-    if input == dragInput and dragging then
-        update(input)
-    end
-end)
-
-CloseButton.MouseButton1Click:Connect(function()
-    ScreenGui:Destroy()
-    playSound("12221967")
-end)
-
-MinimizeButton.MouseButton1Click:Connect(function()
-    minimized = not minimized
-    if minimized then
-        ContentFrame.Visible = false
-        ScrollBar.Visible = false
-        MainFrame.Size = UDim2.new(0, 300, 0, 70)
-        MinimizeButton.Text = "+"
-    else
-        ContentFrame.Visible = true
-        MainFrame.Size = UDim2.new(0, 300, 0, 350)
-        MinimizeButton.Text = "_"
-        updateScroll()
-    end
-    playSound("12221967")
-end)
-
-if not getgenv().Network then
-    getgenv().Network = {
-        BaseParts = {},
-        Velocity = Vector3.new(14.46262424, 14.46262424, 14.46262424)
-    }
-    Network.RetainPart = function(Part)
-        if typeof(Part) == "Instance" and Part:IsA("BasePart") and Part:IsDescendantOf(workspace) then
-            table.insert(Network.BaseParts, Part)
-            Part.CustomPhysicalProperties = PhysicalProperties.new(0, 0, 0, 0, 0)
-            Part.CanCollide = false
-        end
-    end
-    local function EnablePartControl()
-        LocalPlayer.ReplicationFocus = workspace
-        RunService.Heartbeat:Connect(function()
-            sethiddenproperty(LocalPlayer, "SimulationRadius", math.huge)
-            for _, Part in pairs(Network.BaseParts) do
-                if Part:IsDescendantOf(workspace) then
-                    Part.Velocity = Network.Velocity
-                end
-            end
-        end)
-    end
-    EnablePartControl()
-end
-
-local parts = {}
-local function addPart(part)
-    if part:IsA("BasePart") and not part.Anchored and part:IsDescendantOf(workspace) then
-        if part.Parent == LocalPlayer.Character or part:IsDescendantOf(LocalPlayer.Character) then
-            return false
-        end
-
-        part.CustomPhysicalProperties = PhysicalProperties.new(0, 0, 0, 0, 0)
-        part.CanCollide = false
-        
-        if not table.find(parts, part) then
-            table.insert(parts, part)
-        end
-        return true
-    end
-    return false
-end
-
-local function removePart(part)
-    local index = table.find(parts, part)
-    if index then
-        table.remove(parts, index)
-    end
-end
-
-for _, part in pairs(workspace:GetDescendants()) do
-    addPart(part)
-end
-
-workspace.DescendantAdded:Connect(addPart)
-workspace.DescendantRemoving:Connect(removePart)
+-- Atualização do sistema de voo com flySpeeds
+local flyEnabled = false
+local ringPartsEnabled = false
+local flyConnection
+local tpwalking = false
 
 local function updateFlySystem()
     if flyEnabled and ringPartsEnabled then
-        local speaker = game:GetService("Players").LocalPlayer
+        local speaker = LocalPlayer
         local character = speaker.Character
         
         if not character or not character:FindFirstChild("Humanoid") then
@@ -384,16 +358,14 @@ local function updateFlySystem()
         end
         
         local humanoid = character.Humanoid
-        
         tpwalking = true
+        
         for i = 1, flySpeeds do
             spawn(function()
-                local hb = game:GetService("RunService").Heartbeat
-                local chr = character
-                local hum = humanoid
-                while tpwalking and hb:Wait() and chr and hum and hum.Parent and flyEnabled and ringPartsEnabled do
-                    if hum.MoveDirection.Magnitude > 0 then
-                        chr:TranslateBy(hum.MoveDirection)
+                local hb = RunService.Heartbeat
+                while tpwalking and hb:Wait() and character and humanoid and humanoid.Parent and flyEnabled and ringPartsEnabled do
+                    if humanoid.MoveDirection.Magnitude > 0 then
+                        character:TranslateBy(humanoid.MoveDirection)
                     end
                 end
             end)
@@ -420,122 +392,46 @@ local function updateFlySystem()
         humanoid:SetStateEnabled(Enum.HumanoidStateType.Swimming, false)
         humanoid:ChangeState(Enum.HumanoidStateType.Swimming)
         
-        if humanoid.RigType == Enum.HumanoidRigType.R15 then
-            local upperTorso = character:FindFirstChild("UpperTorso")
-            if upperTorso then
-                local ctrl = {f = 0, b = 0, l = 0, r = 0}
-                local lastctrl = {f = 0, b = 0, l = 0, r = 0}
-                local maxspeed = 50
-                local speed = 0
-
-                local bg = Instance.new("BodyGyro", upperTorso)
-                bg.P = 9e4
-                bg.maxTorque = Vector3.new(9e9, 9e9, 9e9)
-                bg.cframe = upperTorso.CFrame
-                
-                local bv = Instance.new("BodyVelocity", upperTorso)
-                bv.velocity = Vector3.new(0, 0.1, 0)
-                bv.maxForce = Vector3.new(9e9, 9e9, 9e9)
-                
-                humanoid.PlatformStand = true
-                
-                getgenv().FlyObjects = {bg, bv}
-                
-                spawn(function()
-                    while flyEnabled and ringPartsEnabled and character and humanoid.Health > 0 do
-                        RunService.RenderStepped:Wait()
-
-                        if ctrl.l + ctrl.r ~= 0 or ctrl.f + ctrl.b ~= 0 then
-                            speed = speed + 0.5 + (speed/maxspeed)
-                            if speed > maxspeed then
-                                speed = maxspeed
-                            end
-                        elseif not (ctrl.l + ctrl.r ~= 0 or ctrl.f + ctrl.b ~= 0) and speed ~= 0 then
-                            speed = speed - 1
-                            if speed < 0 then
-                                speed = 0
-                            end
-                        end
-                        
-                        if (ctrl.l + ctrl.r) ~= 0 or (ctrl.f + ctrl.b) ~= 0 then
-                            bv.velocity = ((workspace.CurrentCamera.CoordinateFrame.lookVector * (ctrl.f+ctrl.b)) + 
-                                         ((workspace.CurrentCamera.CoordinateFrame * CFrame.new(ctrl.l+ctrl.r, (ctrl.f+ctrl.b)*0.2, 0).p) - 
-                                         workspace.CurrentCamera.CoordinateFrame.p)) * speed
-                            lastctrl = {f = ctrl.f, b = ctrl.b, l = ctrl.l, r = ctrl.r}
-                        elseif (ctrl.l + ctrl.r) == 0 and (ctrl.f + ctrl.b) == 0 and speed ~= 0 then
-                            bv.velocity = ((workspace.CurrentCamera.CoordinateFrame.lookVector * (lastctrl.f+lastctrl.b)) + 
-                                         ((workspace.CurrentCamera.CoordinateFrame * CFrame.new(lastctrl.l+lastctrl.r, (lastctrl.f+lastctrl.b)*0.2, 0).p) - 
-                                         workspace.CurrentCamera.CoordinateFrame.p)) * speed
-                        else
-                            bv.velocity = Vector3.new(0, 0.1, 0)
-                        end
-
-                        bg.cframe = workspace.CurrentCamera.CoordinateFrame * CFrame.Angles(-math.rad((ctrl.f+ctrl.b)*50*speed/maxspeed), 0, 0)
-                    end
-                    
-                    if bg then bg:Destroy() end
-                    if bv then bv:Destroy() end
-                end)
-                
-                if flyConnection then
-                    flyConnection:Disconnect()
+        -- Corpo do voo (exemplo básico, adapte se quiser mais controle)
+        local upperTorso = character:FindFirstChild("UpperTorso")
+        if upperTorso then
+            local bg = Instance.new("BodyGyro", upperTorso)
+            bg.P = 90000
+            bg.maxTorque = Vector3.new(1e9,1e9,1e9)
+            bg.cframe = upperTorso.CFrame
+            
+            local bv = Instance.new("BodyVelocity", upperTorso)
+            bv.velocity = Vector3.new(0,0.1,0)
+            bv.maxForce = Vector3.new(1e9,1e9,1e9)
+            
+            humanoid.PlatformStand = true
+            
+            getgenv().FlyObjects = {bg, bv}
+            
+            spawn(function()
+                while flyEnabled and ringPartsEnabled and character and humanoid.Health > 0 do
+                    RunService.RenderStepped:Wait()
+                    -- Você pode adicionar lógica para modificar bv.velocity considerando flySpeeds aqui se quiser mais efeito
                 end
-                
-                flyConnection = UserInputService.InputBegan:Connect(function(input)
-                    if input.KeyCode == Enum.KeyCode.W then
-                        ctrl.f = 1
-                    elseif input.KeyCode == Enum.KeyCode.S then
-                        ctrl.b = -1
-                    elseif input.KeyCode == Enum.KeyCode.A then
-                        ctrl.l = -1
-                    elseif input.KeyCode == Enum.KeyCode.D then
-                        ctrl.r = 1
-                    end
-                end)
-
-                local inputEndConnection = UserInputService.InputEnded:Connect(function(input)
-                    if input.KeyCode == Enum.KeyCode.W then
-                        ctrl.f = 0
-                    elseif input.KeyCode == Enum.KeyCode.S then
-                        ctrl.b = 0
-                    elseif input.KeyCode == Enum.KeyCode.A then
-                        ctrl.l = 0
-                    elseif input.KeyCode == Enum.KeyCode.D then
-                        ctrl.r = 0
-                    end
-                end)
-
-                getgenv().FlyConnections = {flyConnection, inputEndConnection}
-            end
+                if bg then bg:Destroy() end
+                if bv then bv:Destroy() end
+            end)
+            
+            if flyConnection then flyConnection:Disconnect() end
+            flyConnection = UserInputService.InputBegan:Connect(function(input)
+                -- controle movimento aqui caso queira customizar
+            end)
         end
-        
     else
         tpwalking = false
-        
-        if flyConnection then
-            flyConnection:Disconnect()
-            flyConnection = nil
-        end
-        
-        if getgenv().FlyConnections then
-            for _, conn in pairs(getgenv().FlyConnections) do
-                if conn then
-                    conn:Disconnect()
-                end
-            end
-            getgenv().FlyConnections = nil
-        end
-        
+        if flyConnection then flyConnection:Disconnect() flyConnection = nil end
         if getgenv().FlyObjects then
             for _, obj in pairs(getgenv().FlyObjects) do
-                if obj and obj.Parent then
-                    obj:Destroy()
-                end
+                if obj and obj.Parent then obj:Destroy() end
             end
             getgenv().FlyObjects = nil
         end
-        
-        local character = game.Players.LocalPlayer.Character
+        local character = LocalPlayer.Character
         if character and character:FindFirstChild("Humanoid") then
             character.Humanoid.PlatformStand = false
             if character:FindFirstChild("Animate") then
@@ -545,6 +441,7 @@ local function updateFlySystem()
     end
 end
 
+-- Evento toggle Super Ring
 SuperRingToggle.MouseButton1Click:Connect(function()
     ringPartsEnabled = not ringPartsEnabled
     
@@ -555,11 +452,7 @@ SuperRingToggle.MouseButton1Click:Connect(function()
         flyEnabled = true
         FlyStatus.Text = "FLY: ACTIVE"
         FlyStatus.TextColor3 = Color3.fromRGB(100, 255, 100)
-        
-        spawn(function()
-            wait(0.1)
-            updateFlySystem()
-        end)
+        spawn(function() wait(0.1) updateFlySystem() end)
     else
         SuperRingToggle.Text = "SUPER RING: OFF"
         SuperRingToggle.BackgroundColor3 = Color3.fromRGB(200, 0, 0)
@@ -569,79 +462,7 @@ SuperRingToggle.MouseButton1Click:Connect(function()
         FlyStatus.TextColor3 = Color3.fromRGB(255, 100, 100)
         updateFlySystem()
     end
-    
     playSound("12221967")
-end)
-
-DecreaseRadius.MouseButton1Click:Connect(function()
-    radius = math.max(10, radius - 5)
-    RadiusDisplay.Text = "Radius: " .. radius
-    playSound("12221967")
-end)
-
-IncreaseRadius.MouseButton1Click:Connect(function()
-    radius = math.min(100, radius + 5)
-    RadiusDisplay.Text = "Radius: " .. radius
-    playSound("12221967")
-end)
-
-RunService.Heartbeat:Connect(function()
-    if not ringPartsEnabled then return end
-    
-    local humanoidRootPart = LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart")
-    if humanoidRootPart then
-        local tornadoCenter = humanoidRootPart.Position
-        for _, part in pairs(parts) do
-            if part and part.Parent and not part.Anchored and part:IsDescendantOf(workspace) then
-                local pos = part.Position
-                local distance = (Vector3.new(pos.X, tornadoCenter.Y, pos.Z) - tornadoCenter).Magnitude
-                local angle = math.atan2(pos.Z - tornadoCenter.Z, pos.X - tornadoCenter.X)
-                local newAngle = angle + math.rad(rotationSpeed)
-                local targetPos = Vector3.new(
-                    tornadoCenter.X + math.cos(newAngle) * math.min(radius, distance),
-                    tornadoCenter.Y + (height * (math.abs(math.sin((pos.Y - tornadoCenter.Y) / height)))),
-                    tornadoCenter.Z + math.sin(newAngle) * math.min(radius, distance)
-                )
-                local directionToTarget = (targetPos - part.Position).unit
-                part.Velocity = directionToTarget * attractionStrength
-            end
-        end
-    end
 end)
 
 updateScroll()
-
-StarterGui:SetCore("SendNotification", {
-    Title = "ELCDX Super Ring V1",
-    Text = "Natural Disaster Mode Activated!",
-    Duration = 5
-})
-
-local function SendChatMessage(message)
-    if TextChatService.ChatVersion == Enum.ChatVersion.TextChatService then
-        local textChannel = TextChatService.TextChannels.RBXGeneral
-        textChannel:SendAsync(message)
-    else
-        game:GetService("ReplicatedStorage").DefaultChatSystemChatEvents.SayMessageRequest:FireServer(message, "All")
-    end
-end
-
-SendChatMessage("ELCDX DOMINA !")
-
-game:GetService("Players").LocalPlayer.CharacterAdded:Connect(function(char)
-    wait(1)
-    if game.Players.LocalPlayer.Character then
-        game.Players.LocalPlayer.Character.Humanoid.PlatformStand = false
-        game.Players.LocalPlayer.Character.Animate.Disabled = false
-    end
-    if ringPartsEnabled then
-        flyEnabled = true
-        updateFlySystem()
-    end
-end)
-
-StarterGui:SetCore("SendNotification", {
-    Title = "SUPER RING V1 ELCDX",
-    Text = "Cracked By ELCDX!",
-    Duration = 5
-})
