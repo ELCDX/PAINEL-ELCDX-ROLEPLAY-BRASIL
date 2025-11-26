@@ -7,6 +7,7 @@ local TextChatService = game:GetService("TextChatService")
 
 local LocalPlayer = Players.LocalPlayer
 
+-- Sound Effects
 local function playSound(soundId)
     local sound = Instance.new("Sound")
     sound.SoundId = "rbxassetid://" .. soundId
@@ -17,182 +18,153 @@ local function playSound(soundId)
     end)
 end
 
+-- Play initial sound
 playSound("2865227271")
 
+-- GUI Creation
 local ScreenGui = Instance.new("ScreenGui")
-ScreenGui.Name = "ELCDX_SuperRingGUI"
+ScreenGui.Name = "SuperRingPartsGUI"
 ScreenGui.ResetOnSpawn = false
 ScreenGui.Parent = LocalPlayer:WaitForChild("PlayerGui")
 
 local MainFrame = Instance.new("Frame")
-MainFrame.Size = UDim2.new(0, 300, 0, 250)
-MainFrame.Position = UDim2.new(0.1, 0, 0.2, 0)
-MainFrame.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
-MainFrame.BorderSizePixel = 2
-MainFrame.BorderColor3 = Color3.fromRGB(50, 50, 50)
+MainFrame.Size = UDim2.new(0, 220, 0, 190)
+MainFrame.Position = UDim2.new(0.5, -110, 0.5, -95)
+MainFrame.BackgroundColor3 = Color3.fromRGB(20, 20, 30) -- Dark blue/purple
+MainFrame.BorderSizePixel = 0
 MainFrame.Parent = ScreenGui
 
+-- Make the GUI round
 local UICorner = Instance.new("UICorner")
-UICorner.CornerRadius = UDim.new(0, 15)
+UICorner.CornerRadius = UDim.new(0, 20)
 UICorner.Parent = MainFrame
 
-local TitleContainer = Instance.new("Frame")
-TitleContainer.Size = UDim2.new(1, 0, 0, 60)
-TitleContainer.Position = UDim2.new(0, 0, 0, 0)
-TitleContainer.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
-TitleContainer.BorderSizePixel = 0
-TitleContainer.Parent = MainFrame
-
-local TitleCorner = Instance.new("UICorner")
-TitleCorner.CornerRadius = UDim.new(0, 15)
-TitleCorner.Parent = TitleContainer
-
 local Title = Instance.new("TextLabel")
-Title.Size = UDim2.new(1, -20, 0, 30)
-Title.Position = UDim2.new(0, 10, 0, 5)
-Title.Text = "SUPER RING V1 ELCDX"
-Title.TextColor3 = Color3.fromRGB(255, 215, 0)
-Title.BackgroundTransparency = 1
-Title.Font = Enum.Font.GothamBold
-Title.TextSize = 18
-Title.TextStrokeTransparency = 0.8
-Title.Parent = TitleContainer
+Title.Size = UDim2.new(1, 0, 0, 40)
+Title.Position = UDim2.new(0, 0, 0, 0)
+Title.Text = "Super Ring Parts v3.2"
+Title.TextColor3 = Color3.fromRGB(255, 255, 255) -- White text
+Title.BackgroundColor3 = Color3.fromRGB(0, 100, 255) -- Electric blue
+Title.Font = Enum.Font.Fondamento
+Title.TextSize = 22
+Title.Parent = MainFrame
 
-local Subtitle = Instance.new("TextLabel")
-Subtitle.Size = UDim2.new(1, -20, 0, 20)
-Subtitle.Position = UDim2.new(0, 10, 0, 35)
-Subtitle.Text = "Natural Disaster"
-Subtitle.TextColor3 = Color3.fromRGB(220, 220, 220)
-Subtitle.BackgroundTransparency = 1
-Subtitle.Font = Enum.Font.Gotham
-Subtitle.TextSize = 14
-Subtitle.Parent = TitleContainer
+-- Round the title
+local TitleCorner = Instance.new("UICorner")
+TitleCorner.CornerRadius = UDim.new(0, 20)
+TitleCorner.Parent = Title
 
-local ContentFrame = Instance.new("Frame")
-ContentFrame.Size = UDim2.new(1, -20, 1, -70)
-ContentFrame.Position = UDim2.new(0, 10, 0, 60)
-ContentFrame.BackgroundTransparency = 1
-ContentFrame.Parent = MainFrame
+local ToggleButton = Instance.new("TextButton")
+ToggleButton.Size = UDim2.new(0.8, 0, 0, 35)
+ToggleButton.Position = UDim2.new(0.1, 0, 0.3, 0)
+ToggleButton.Text = "Ring Parts Off"
+ToggleButton.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+ToggleButton.TextColor3 = Color3.fromRGB(0, 200, 255) -- Cyan
+ToggleButton.Font = Enum.Font.Fondamento
+ToggleButton.TextSize = 18
+ToggleButton.Parent = MainFrame
 
-local SuperRingToggle = Instance.new("TextButton")
-SuperRingToggle.Size = UDim2.new(1, 0, 0, 45)
-SuperRingToggle.Position = UDim2.new(0, 0, 0, 10)
-SuperRingToggle.Text = "SUPER RING: OFF"
-SuperRingToggle.BackgroundColor3 = Color3.fromRGB(200, 0, 0)
-SuperRingToggle.TextColor3 = Color3.fromRGB(255, 255, 255)
-SuperRingToggle.Font = Enum.Font.GothamBold
-SuperRingToggle.TextSize = 16
-SuperRingToggle.Parent = ContentFrame
-
+-- Round the toggle button
 local ToggleCorner = Instance.new("UICorner")
-ToggleCorner.CornerRadius = UDim.new(0, 8)
-ToggleCorner.Parent = SuperRingToggle
-
-local FlyStatus = Instance.new("TextLabel")
-FlyStatus.Size = UDim2.new(1, 0, 0, 30)
-FlyStatus.Position = UDim2.new(0, 0, 0, 65)
-FlyStatus.Text = "FLY: INACTIVE"
-FlyStatus.TextColor3 = Color3.fromRGB(255, 100, 100)
-FlyStatus.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
-FlyStatus.Font = Enum.Font.Gotham
-FlyStatus.TextSize = 14
-FlyStatus.Parent = ContentFrame
-
-local FlyCorner = Instance.new("UICorner")
-FlyCorner.CornerRadius = UDim.new(0, 6)
-FlyCorner.Parent = FlyStatus
-
-local RadiusContainer = Instance.new("Frame")
-RadiusContainer.Size = UDim2.new(1, 0, 0, 40)
-RadiusContainer.Position = UDim2.new(0, 0, 0, 105)
-RadiusContainer.BackgroundTransparency = 1
-RadiusContainer.Parent = ContentFrame
+ToggleCorner.CornerRadius = UDim.new(0, 10)
+ToggleCorner.Parent = ToggleButton
 
 local DecreaseRadius = Instance.new("TextButton")
-DecreaseRadius.Size = UDim2.new(0.2, 0, 1, 0)
-DecreaseRadius.Position = UDim2.new(0, 0, 0, 0)
-DecreaseRadius.Text = "-"
-DecreaseRadius.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
-DecreaseRadius.TextColor3 = Color3.fromRGB(255, 255, 255)
-DecreaseRadius.Font = Enum.Font.GothamBold
+DecreaseRadius.Size = UDim2.new(0.2, 0, 0, 35)
+DecreaseRadius.Position = UDim2.new(0.1, 0, 0.6, 0)
+DecreaseRadius.Text = "<"
+DecreaseRadius.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+DecreaseRadius.TextColor3 = Color3.fromRGB(0, 200, 255) -- Cyan
+DecreaseRadius.Font = Enum.Font.Fondamento
 DecreaseRadius.TextSize = 18
-DecreaseRadius.Parent = RadiusContainer
+DecreaseRadius.Parent = MainFrame
+
+-- Round the decrease button
+local DecreaseCorner = Instance.new("UICorner")
+DecreaseCorner.CornerRadius = UDim.new(0, 10)
+DecreaseCorner.Parent = DecreaseRadius
 
 local IncreaseRadius = Instance.new("TextButton")
-IncreaseRadius.Size = UDim2.new(0.2, 0, 1, 0)
-IncreaseRadius.Position = UDim2.new(0.8, 0, 0, 0)
-IncreaseRadius.Text = "+"
-IncreaseRadius.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
-IncreaseRadius.TextColor3 = Color3.fromRGB(255, 255, 255)
-IncreaseRadius.Font = Enum.Font.GothamBold
+IncreaseRadius.Size = UDim2.new(0.2, 0, 0, 35)
+IncreaseRadius.Position = UDim2.new(0.7, 0, 0.6, 0)
+IncreaseRadius.Text = ">"
+IncreaseRadius.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+IncreaseRadius.TextColor3 = Color3.fromRGB(0, 200, 255) -- Cyan
+IncreaseRadius.Font = Enum.Font.Fondamento
 IncreaseRadius.TextSize = 18
-IncreaseRadius.Parent = RadiusContainer
+IncreaseRadius.Parent = MainFrame
+
+-- Round the increase button
+local IncreaseCorner = Instance.new("UICorner")
+IncreaseCorner.CornerRadius = UDim.new(0, 10)
+IncreaseCorner.Parent = IncreaseRadius
 
 local RadiusDisplay = Instance.new("TextLabel")
-RadiusDisplay.Size = UDim2.new(0.5, 0, 1, 0)
-RadiusDisplay.Position = UDim2.new(0.25, 0, 0, 0)
+RadiusDisplay.Size = UDim2.new(0.4, 0, 0, 35)
+RadiusDisplay.Position = UDim2.new(0.3, 0, 0.6, 0)
 RadiusDisplay.Text = "Radius: 50"
-RadiusDisplay.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
-RadiusDisplay.TextColor3 = Color3.fromRGB(255, 255, 255)
-RadiusDisplay.Font = Enum.Font.Gotham
-RadiusDisplay.TextSize = 14
-RadiusDisplay.Parent = RadiusContainer
+RadiusDisplay.BackgroundColor3 = Color3.fromRGB(0, 80, 200) -- Dark blue
+RadiusDisplay.TextColor3 = Color3.fromRGB(255, 255, 255) -- White
+RadiusDisplay.Font = Enum.Font.Fondamento
+RadiusDisplay.TextSize = 18
+RadiusDisplay.Parent = MainFrame
 
+-- Round the radius display
 local RadiusCorner = Instance.new("UICorner")
-RadiusCorner.CornerRadius = UDim.new(0, 6)
+RadiusCorner.CornerRadius = UDim.new(0, 10)
 RadiusCorner.Parent = RadiusDisplay
 
-local ButtonCorner = Instance.new("UICorner")
-ButtonCorner.CornerRadius = UDim.new(0, 6)
-ButtonCorner.Parent = DecreaseRadius
-ButtonCorner:Clone().Parent = IncreaseRadius
-
-local CloseButton = Instance.new("TextButton")
-CloseButton.Size = UDim2.new(0, 25, 0, 25)
-CloseButton.Position = UDim2.new(1, -30, 0, 5)
-CloseButton.Text = "X"
-CloseButton.BackgroundColor3 = Color3.fromRGB(200, 0, 0)
-CloseButton.TextColor3 = Color3.fromRGB(255, 255, 255)
-CloseButton.Font = Enum.Font.GothamBold
-CloseButton.TextSize = 14
-CloseButton.Parent = MainFrame
-
-local CloseCorner = Instance.new("UICorner")
-CloseCorner.CornerRadius = UDim.new(0, 12)
-CloseCorner.Parent = CloseButton
-
-local MinimizeButton = Instance.new("TextButton")
-MinimizeButton.Size = UDim2.new(0, 25, 0, 25)
-MinimizeButton.Position = UDim2.new(1, -60, 0, 5)
-MinimizeButton.Text = "_"
-MinimizeButton.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
-MinimizeButton.TextColor3 = Color3.fromRGB(255, 255, 255)
-MinimizeButton.Font = Enum.Font.GothamBold
-MinimizeButton.TextSize = 14
-MinimizeButton.Parent = MainFrame
-
-local MinimizeCorner = Instance.new("UICorner")
-MinimizeCorner.CornerRadius = UDim.new(0, 12)
-MinimizeCorner.Parent = MinimizeButton
-
 local Watermark = Instance.new("TextLabel")
-Watermark.Size = UDim2.new(1, -10, 0, 20)
-Watermark.Position = UDim2.new(0, 5, 1, -25)
-Watermark.Text = "ELCDX Super Ring V1 | Natural Disaster"
-Watermark.TextColor3 = Color3.fromRGB(150, 150, 150)
+Watermark.Size = UDim2.new(1, 0, 0, 20)
+Watermark.Position = UDim2.new(0, 0, 1, -20)
+Watermark.Text = "Super Ring [V3.2] - Cracked By @cqwe5qwe5"
+Watermark.TextColor3 = Color3.fromRGB(0, 200, 255) -- Cyan
 Watermark.BackgroundTransparency = 1
-Watermark.Font = Enum.Font.Gotham
-Watermark.TextSize = 12
+Watermark.Font = Enum.Font.Fondamento
+Watermark.TextSize = 14
 Watermark.Parent = MainFrame
 
-local minimized = false
-local ringPartsEnabled = false
-local flyEnabled = false
-local radius = 50
-local height = 100
-local rotationSpeed = 10
-local attractionStrength = 1000
+-- Add minimize button
+local MinimizeButton = Instance.new("TextButton")
+MinimizeButton.Size = UDim2.new(0, 30, 0, 30)
+MinimizeButton.Position = UDim2.new(1, -35, 0, 5)
+MinimizeButton.Text = "-"
+MinimizeButton.BackgroundColor3 = Color3.fromRGB(0, 80, 200) -- Dark blue
+MinimizeButton.TextColor3 = Color3.fromRGB(255, 255, 255) -- White
+MinimizeButton.Font = Enum.Font.Fondamento
+MinimizeButton.TextSize = 18
+MinimizeButton.Parent = MainFrame
 
+-- Round the minimize button
+local MinimizeCorner = Instance.new("UICorner")
+MinimizeCorner.CornerRadius = UDim.new(0, 15)
+MinimizeCorner.Parent = MinimizeButton
+
+-- Minimize functionality
+local minimized = false
+MinimizeButton.MouseButton1Click:Connect(function()
+    minimized = not minimized
+    if minimized then
+        MainFrame:TweenSize(UDim2.new(0, 220, 0, 40), "Out", "Quad", 0.3, true)
+        MinimizeButton.Text = "+"
+        ToggleButton.Visible = false
+        DecreaseRadius.Visible = false
+        IncreaseRadius.Visible = false
+        RadiusDisplay.Visible = false
+        Watermark.Visible = false
+    else
+        MainFrame:TweenSize(UDim2.new(0, 220, 0, 190), "Out", "Quad", 0.3, true)
+        MinimizeButton.Text = "-"
+        ToggleButton.Visible = true
+        DecreaseRadius.Visible = true
+        IncreaseRadius.Visible = true
+        RadiusDisplay.Visible = true
+        Watermark.Visible = true
+    end
+    playSound("12221967")
+end)
+
+-- Make GUI draggable
 local dragging
 local dragInput
 local dragStart
@@ -203,8 +175,8 @@ local function update(input)
     MainFrame.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
 end
 
-TitleContainer.InputBegan:Connect(function(input)
-    if input.UserInputType == Enum.UserInputType.MouseButton1 then
+MainFrame.InputBegan:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
         dragging = true
         dragStart = input.Position
         startPos = MainFrame.Position
@@ -217,8 +189,8 @@ TitleContainer.InputBegan:Connect(function(input)
     end
 end)
 
-TitleContainer.InputChanged:Connect(function(input)
-    if input.UserInputType == Enum.UserInputType.MouseMovement then
+MainFrame.InputChanged:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch then
         dragInput = input
     end
 end)
@@ -229,25 +201,7 @@ UserInputService.InputChanged:Connect(function(input)
     end
 end)
 
-CloseButton.MouseButton1Click:Connect(function()
-    ScreenGui:Destroy()
-    playSound("12221967")
-end)
-
-MinimizeButton.MouseButton1Click:Connect(function()
-    minimized = not minimized
-    if minimized then
-        ContentFrame.Visible = false
-        MainFrame.Size = UDim2.new(0, 300, 0, 60)
-        MinimizeButton.Text = "+"
-    else
-        ContentFrame.Visible = true
-        MainFrame.Size = UDim2.new(0, 300, 0, 250)
-        MinimizeButton.Text = "_"
-    end
-    playSound("12221967")
-end)
-
+-- Ring Parts Logic
 if not getgenv().Network then
     getgenv().Network = {
         BaseParts = {},
@@ -274,22 +228,32 @@ if not getgenv().Network then
     EnablePartControl()
 end
 
-local parts = {}
-local function addPart(part)
-    if part:IsA("BasePart") and not part.Anchored and part:IsDescendantOf(workspace) then
-        if part.Parent == LocalPlayer.Character or part:IsDescendantOf(LocalPlayer.Character) then
+local radius = 50
+local height = 100
+local rotationSpeed = 10
+local attractionStrength = 1000
+local ringPartsEnabled = false
+
+local function RetainPart(Part)
+    if Part:IsA("BasePart") and not Part.Anchored and Part:IsDescendantOf(workspace) then
+        if Part.Parent == LocalPlayer.Character or Part:IsDescendantOf(LocalPlayer.Character) then
             return false
         end
 
-        part.CustomPhysicalProperties = PhysicalProperties.new(0, 0, 0, 0, 0)
-        part.CanCollide = false
-        
-        if not table.find(parts, part) then
-            table.insert(parts, part)
-        end
+        Part.CustomPhysicalProperties = PhysicalProperties.new(0, 0, 0, 0, 0)
+        Part.CanCollide = false
         return true
     end
     return false
+end
+
+local parts = {}
+local function addPart(part)
+    if RetainPart(part) then
+        if not table.find(parts, part) then
+            table.insert(parts, part)
+        end
+    end
 end
 
 local function removePart(part)
@@ -306,58 +270,6 @@ end
 workspace.DescendantAdded:Connect(addPart)
 workspace.DescendantRemoving:Connect(removePart)
 
-local function updateFlySystem()
-    if flyEnabled and ringPartsEnabled then
-        FlyStatus.Text = "FLY: ACTIVE"
-        FlyStatus.TextColor3 = Color3.fromRGB(100, 255, 100)
-        
-        local character = LocalPlayer.Character
-        if character and character:FindFirstChild("Humanoid") then
-            character.Humanoid.PlatformStand = true
-        end
-    else
-        FlyStatus.Text = "FLY: INACTIVE"
-        FlyStatus.TextColor3 = Color3.fromRGB(255, 100, 100)
-        
-        local character = LocalPlayer.Character
-        if character and character:FindFirstChild("Humanoid") then
-            character.Humanoid.PlatformStand = false
-        end
-    end
-end
-
-SuperRingToggle.MouseButton1Click:Connect(function()
-    ringPartsEnabled = not ringPartsEnabled
-    
-    if ringPartsEnabled then
-        SuperRingToggle.Text = "SUPER RING: ON"
-        SuperRingToggle.BackgroundColor3 = Color3.fromRGB(0, 200, 0)
-        
-        flyEnabled = true
-        updateFlySystem()
-    else
-        SuperRingToggle.Text = "SUPER RING: OFF"
-        SuperRingToggle.BackgroundColor3 = Color3.fromRGB(200, 0, 0)
-        
-        flyEnabled = false
-        updateFlySystem()
-    end
-    
-    playSound("12221967")
-end)
-
-DecreaseRadius.MouseButton1Click:Connect(function()
-    radius = math.max(10, radius - 5)
-    RadiusDisplay.Text = "Radius: " .. radius
-    playSound("12221967")
-end)
-
-IncreaseRadius.MouseButton1Click:Connect(function()
-    radius = math.min(100, radius + 5)
-    RadiusDisplay.Text = "Radius: " .. radius
-    playSound("12221967")
-end)
-
 RunService.Heartbeat:Connect(function()
     if not ringPartsEnabled then return end
     
@@ -365,7 +277,7 @@ RunService.Heartbeat:Connect(function()
     if humanoidRootPart then
         local tornadoCenter = humanoidRootPart.Position
         for _, part in pairs(parts) do
-            if part and part.Parent and not part.Anchored and part:IsDescendantOf(workspace) then
+            if part.Parent and not part.Anchored then
                 local pos = part.Position
                 local distance = (Vector3.new(pos.X, tornadoCenter.Y, pos.Z) - tornadoCenter).Magnitude
                 local angle = math.atan2(pos.Z - tornadoCenter.Z, pos.X - tornadoCenter.X)
@@ -382,12 +294,41 @@ RunService.Heartbeat:Connect(function()
     end
 end)
 
+-- Button functionality
+ToggleButton.MouseButton1Click:Connect(function()
+    ringPartsEnabled = not ringPartsEnabled
+    ToggleButton.Text = ringPartsEnabled and "Ring Parts On" or "Ring Parts Off"
+    ToggleButton.BackgroundColor3 = ringPartsEnabled and Color3.fromRGB(50, 205, 50) or Color3.fromRGB(0, 0, 0)
+    playSound("12221967")
+end)
+
+DecreaseRadius.MouseButton1Click:Connect(function()
+    radius = math.max(10, radius - 5)
+    RadiusDisplay.Text = "Radius: " .. radius
+    playSound("12221967")
+end)
+
+IncreaseRadius.MouseButton1Click:Connect(function()
+    radius = math.min(100, radius + 5)
+    RadiusDisplay.Text = "Radius: " .. radius
+    playSound("12221967")
+end)
+
+-- Get player thumbnail for ELCDX777K
+local userId = Players:GetUserIdFromNameAsync("ELCDX777K")
+local thumbType = Enum.ThumbnailType.HeadShot
+local thumbSize = Enum.ThumbnailSize.Size420x420
+local content, isReady = Players:GetUserThumbnailAsync(userId, thumbType, thumbSize)
+
+-- Updated notification
 StarterGui:SetCore("SendNotification", {
-    Title = "ELCDX Super Ring V1",
-    Text = "Natural Disaster Mode Activated!",
+    Title = "ELCDX DOMINA!",
+    Text = "ELCDX777K is here!",
+    Icon = content,
     Duration = 5
 })
 
+-- Chat message (Updated for new chat system)
 local function SendChatMessage(message)
     if TextChatService.ChatVersion == Enum.ChatVersion.TextChatService then
         local textChannel = TextChatService.TextChannels.RBXGeneral
@@ -396,22 +337,3 @@ local function SendChatMessage(message)
         game:GetService("ReplicatedStorage").DefaultChatSystemChatEvents.SayMessageRequest:FireServer(message, "All")
     end
 end
-
-SendChatMessage("ELCDX DOMINA!")
-
-game:GetService("Players").LocalPlayer.CharacterAdded:Connect(function(char)
-    wait(1)
-    if game.Players.LocalPlayer.Character then
-        game.Players.LocalPlayer.Character.Humanoid.PlatformStand = false
-    end
-    if ringPartsEnabled then
-        flyEnabled = true
-        updateFlySystem()
-    end
-end)
-
-StarterGui:SetCore("SendNotification", {
-    Title = "SUPER RING V1 ELCDX",
-    Text = "Cracked By ELCDX!",
-    Duration = 5
-})
