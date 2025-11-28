@@ -1,576 +1,433 @@
--- PAINEL ELCDX v3.5 Prison Life - PARTE 1
+-- PAINEL ELCDX 3.5 - Prison Life - Parte 1
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
 local UserInputService = game:GetService("UserInputService")
-local TweenService = game:GetService("TweenService")
 local LocalPlayer = Players.LocalPlayer
 local PlayerGui = LocalPlayer:WaitForChild("PlayerGui")
 
-for _, g in pairs({"PAINEL_ELCDX","ELCDXPrisonLifeGUI"}) do 
-    local old = PlayerGui:FindFirstChild(g) 
-    if old then old:Destroy() end 
+for _, g in pairs({"PAINEL_ELCDX","ELCDXPrisonLife"}) do
+    local old = PlayerGui:FindFirstChild(g)
+    if old then old:Destroy() end
 end
 
-local farmando, noclipAtivo, espAtivo, flyAtivo, guiMinimizado = false, false, false, false, false
+local farmando, noclipAtivo, espAtivo, guiMinimizado = false, false, false, false
 local posicaoOriginal, dinheiroFarmado, paginaAtual = nil, 0, 1
 local modoGodAtivo = false
-local baseplateEmergencia = nil
 local espectando = false
-local jogadorEspectado = nil
-local cameraOriginal = nil
+local jogadorEspectado, cameraOriginal = nil, nil
+local flyAtivo = false
 local flySpeed = 50
-local bodyVelocity, bodyAngularVelocity = nil, nil
+local bodyVelocity, bodyGyro = nil, nil
 
--- TPs Prison Life
-local tps = {
-    {"Spawn Prisioneiro", Vector3.new(918.53, 99.99, 2365.5)},
-    {"Spawn Guarda", Vector3.new(-919.5, 99.99, 2358.5)},
-    {"Armory", Vector3.new(-973.7, 120.49, 2040.5)},
-    {"Cafeteria", Vector3.new(-336, 100, 2263)},
-    {"Cellblock 1", Vector3.new(293, 100, 1673)},
-    {"Cellblock 2", Vector3.new(-293, 100, 1673)},
-    {"Yard", Vector3.new(-399, 100, 1991)},
-    {"Main Gate", Vector3.new(-950, 100, 2190)},
-    {"Admin Room", Vector3.new(-785, 200, 1620)},
-    {"Redemption Area", Vector3.new(490, 100, 2350)},
-    {"Green Room", Vector3.new(1500, 100, 2200)},
-    {"Secret Area", Vector3.new(0, 500, 0)},
-    {"Heliport", Vector3.new(-950, 300, 1800)},
-    {"Weapons Storage", Vector3.new(-900, 100, 1900)},
-    {"Guard Tower 1", Vector3.new(-950, 250, 2200)},
-    {"Guard Tower 2", Vector3.new(500, 250, 2100)}
+local teleportes = {
+    {"Spawn Prisioneiro", Vector3.new(918.53,99.99,2365.5)},
+    {"Spawn Guarda", Vector3.new(-919.5,99.99,2358.5)},
+    {"Armory", Vector3.new(-973.7,120.49,2040.5)},
+    {"Cafeteria", Vector3.new(-336,100,2263)},
+    {"Cela 1", Vector3.new(293,100,1673)},
+    {"Cela 2", Vector3.new(-293,100,1673)},
+    {"Pátio", Vector3.new(-399,100,1991)},
+    {"Portão Principal", Vector3.new(-950,100,2190)},
+    {"Sala Admin", Vector3.new(-785,200,1620)},
+    {"Área Redenção", Vector3.new(490,100,2350)},
 }
 
--- PAINEL ELCDX v3.5 Prison Life - PARTE 2
-local function notif(t) 
-    local n = Instance.new("ScreenGui", PlayerGui) 
-    local f = Instance.new("Frame", n) 
-    f.Size = UDim2.new(0, 250, 0, 40) 
-    f.Position = UDim2.new(0.5, -125, 0, 10) 
-    f.BackgroundColor3 = Color3.fromRGB(20, 20, 20) 
-    f.BorderColor3 = Color3.fromRGB(0, 255, 0) 
-    f.BorderSizePixel = 2 
-    f.CornerRadius = UDim.new(0, 8)
-    local l = Instance.new("TextLabel", f) 
-    l.Size = UDim2.new(1, 0, 1, 0) 
-    l.BackgroundTransparency = 1 
-    l.Text = t 
-    l.TextColor3 = Color3.fromRGB(0, 255, 0) 
-    l.TextSize = 13 
-    l.Font = Enum.Font.Code 
-    l.TextStrokeTransparency = 0
-    task.wait(3) 
-    n:Destroy() 
+local function notificar(msg)
+    local notifGui = Instance.new("ScreenGui", PlayerGui)
+    local frame = Instance.new("Frame", notifGui)
+    frame.Size = UDim2.new(0,250,0,35)
+    frame.Position = UDim2.new(0.5,-125,0,10)
+    frame.BackgroundColor3 = Color3.fromRGB(20,20,20)
+    frame.BorderSizePixel = 2
+    frame.BorderColor3 = Color3.fromRGB(0,255,0)
+
+    local label = Instance.new("TextLabel", frame)
+    label.Size = UDim2.new(1,0,1,0)
+    label.BackgroundTransparency = 1
+    label.Text = msg
+    label.TextColor3 = Color3.fromRGB(0,255,0)
+    label.Font = Enum.Font.Code
+    label.TextSize = 13
+
+    task.wait(3)
+    notifGui:Destroy()
 end
 
-local function tpSimples(pos) 
-    if LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart") then 
-        LocalPlayer.Character.HumanoidRootPart.CFrame = CFrame.new(pos) 
-        LocalPlayer.Character.HumanoidRootPart.Velocity = Vector3.new(0, 0, 0) 
-    end 
-    notif("Teleporte Prison Life realizado!") 
+local function tpSimples(pos)
+    if LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart") then
+        LocalPlayer.Character.HumanoidRootPart.CFrame = CFrame.new(pos)
+        LocalPlayer.Character.HumanoidRootPart.Velocity = Vector3.new(0,0,0)
+    end
+    notificar("Teleporte realizado!")
+end
+
+-- PAINEL ELCDX 3.5 - Prison Life - Parte 2
+local function iniciarEspectacao(jogador)
+    if espectando then notificar("Já está espectando alguém!") return end
+    if not jogador or not jogador.Character then notificar("Jogador não encontrado!") return end
+    local camera = workspace.CurrentCamera
+    cameraOriginal = camera.CameraSubject
+    camera.CameraSubject = jogador.Character:FindFirstChild("Humanoid")
+    espectando = true
+    jogadorEspectado = jogador
+    notificar("Espectando: " .. jogador.Name)
+end
+
+local function pararEspectacao()
+    if not espectando then notificar("Você não está espectando!") return end
+    local camera = workspace.CurrentCamera
+    if cameraOriginal then camera.CameraSubject = cameraOriginal
+    elseif LocalPlayer.Character then camera.CameraSubject = LocalPlayer.Character:FindFirstChild("Humanoid") end
+    espectando = false
+    notificar("Parou de espectar " .. (jogadorEspectado and jogadorEspectado.Name or "jogador"))
+    jogadorEspectado = nil
+    cameraOriginal = nil
 end
 
 local function toggleFly()
     flyAtivo = not flyAtivo
     if LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart") then
-        local humanoidRootPart = LocalPlayer.Character.HumanoidRootPart
+        local hrp = LocalPlayer.Character.HumanoidRootPart
         if flyAtivo then
-            bodyVelocity = Instance.new("BodyVelocity")
-            bodyVelocity.MaxForce = Vector3.new(4000, 4000, 4000)
-            bodyVelocity.Velocity = Vector3.new(0, 0.1, 0)
-            bodyVelocity.Parent = humanoidRootPart
-            
-            bodyAngularVelocity = Instance.new("BodyAngularVelocity")
-            bodyAngularVelocity.MaxTorque = Vector3.new(4000, 4000, 4000)
-            bodyAngularVelocity.AngularVelocity = Vector3.new(0, 0, 0)
-            bodyAngularVelocity.Parent = humanoidRootPart
-            notif("Fly ativado! Use WASD + Space/Shift")
+            bodyVelocity = Instance.new("BodyVelocity", hrp)
+            bodyVelocity.MaxForce = Vector3.new(1e5,1e5,1e5)
+            bodyVelocity.Velocity = Vector3.new(0,0,0)
+            bodyGyro = Instance.new("BodyGyro", hrp)
+            bodyGyro.MaxTorque = Vector3.new(1e5,1e5,1e5)
+            bodyGyro.CFrame = hrp.CFrame
+            notificar("Fly ativado!")
         else
-            if bodyVelocity then bodyVelocity:Destroy() end
-            if bodyAngularVelocity then bodyAngularVelocity:Destroy() end
-            notif("Fly desativado!")
+            if bodyVelocity then bodyVelocity:Destroy() bodyVelocity = nil end
+            if bodyGyro then bodyGyro:Destroy() bodyGyro = nil end
+            notificar("Fly desativado!")
         end
     end
 end
 
--- PAINEL ELCDX v3.5 Prison Life - PARTE 3
-local function iniciarEspectacao(jogador) 
-    if espectando then notif("Já está espectando alguém!") return end 
-    if not jogador or not jogador.Character then notif("Jogador não encontrado!") return end 
-    local camera = workspace.CurrentCamera 
-    cameraOriginal = camera.CameraSubject 
-    camera.CameraSubject = jogador.Character:FindFirstChild("Humanoid") 
-    espectando = true 
-    jogadorEspectado = jogador 
-    notif("Espectando: " .. jogador.Name) 
-end
-
-local function pararEspectacao() 
-    if not espectando then notif("Você não está espectando!") return end 
-    local camera = workspace.CurrentCamera 
-    if cameraOriginal then camera.CameraSubject = cameraOriginal 
-    elseif LocalPlayer.Character then camera.CameraSubject = LocalPlayer.Character:FindFirstChild("Humanoid") end 
-    espectando = false 
-    local nomeJogador = jogadorEspectado and jogadorEspectado.Name or "jogador" 
-    jogadorEspectado = nil 
-    cameraOriginal = nil 
-    notif("Parou de espectar " .. nomeJogador) 
-end
-
--- GUI Principal
-local gui = Instance.new("ScreenGui", PlayerGui) 
-gui.Name = "PAINEL_ELCDX" 
+-- PAINEL ELCDX 3.5 - Prison Life - Parte 3 (GUI)
+local gui = Instance.new("ScreenGui", PlayerGui)
+gui.Name = "PAINEL_ELCDX"
 gui.ResetOnSpawn = false
 
-local f = Instance.new("Frame", gui) 
-f.Size = UDim2.new(0, 220, 0, 280) 
-f.Position = UDim2.new(0.5, -110, 0.3, 0) 
-f.BackgroundColor3 = Color3.fromRGB(15, 15, 15) 
-f.BorderColor3 = Color3.fromRGB(0, 255, 0) 
-f.BorderSizePixel = 2 
-f.Active = true 
-f.Draggable = true
-f.Parent = gui
+local frame = Instance.new("Frame", gui)
+frame.Size = UDim2.new(0, 220, 0, 280)
+frame.Position = UDim2.new(0.5, -110, 0.3, 0)
+frame.BackgroundColor3 = Color3.fromRGB(15, 15, 15)
+frame.BorderColor3 = Color3.fromRGB(0, 255, 0)
+frame.BorderSizePixel = 2
+frame.Active = true
+frame.Draggable = true
 
--- PAINEL ELCDX v3.5 Prison Life - PARTE 4
-local corner = Instance.new("UICorner", f)
-corner.CornerRadius = UDim.new(0, 8)
+local header = Instance.new("Frame", frame)
+header.Size = UDim2.new(1, 0, 0, 40)
+header.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
 
-local stroke = Instance.new("UIStroke", f)
-stroke.Color = Color3.fromRGB(0, 255, 0)
-stroke.Thickness = 2
+local title = Instance.new("TextLabel", header)
+title.Size = UDim2.new(1, -30, 1, 0)
+title.BackgroundTransparency = 1
+title.Text = "PAINEL ELCDX v3.5 - Prison Life"
+title.Font = Enum.Font.Code
+title.TextColor3 = Color3.fromRGB(0, 255, 0)
+title.TextSize = 14
 
-local h = Instance.new("Frame", f) 
-h.Size = UDim2.new(1, 0, 0, 40) 
-h.BackgroundColor3 = Color3.fromRGB(0, 0, 0) 
-h.BorderSizePixel = 0
+local btnMin = Instance.new("TextButton", header)
+btnMin.Size = UDim2.new(0, 25, 0, 25)
+btnMin.Position = UDim2.new(1, -30, 0.5, -12)
+btnMin.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+btnMin.Text = "-"
+btnMin.TextColor3 = Color3.fromRGB(255, 255, 255)
+btnMin.Font = Enum.Font.Code
+btnMin.TextSize = 18
 
-local t = Instance.new("TextLabel", h) 
-t.Size = UDim2.new(1, -30, 1, 0) 
-t.BackgroundTransparency = 1 
-t.Text = "PAINEL ELCDX v3.5 PRISON" 
-t.Font = Enum.Font.Code 
-t.TextColor3 = Color3.fromRGB(0, 255, 0) 
-t.TextSize = 14 
-t.TextStrokeTransparency = 0
-
-local bMin = Instance.new("TextButton", h) 
-bMin.Size = UDim2.new(0, 25, 0, 25) 
-bMin.Position = UDim2.new(1, -27, 0.5, -12.5) 
-bMin.BackgroundColor3 = Color3.fromRGB(40, 40, 40) 
-bMin.Text = "-" 
-bMin.TextColor3 = Color3.fromRGB(255, 255, 255) 
-bMin.Font = Enum.Font.Code 
-bMin.TextSize = 16
-bMin.Parent = h
-
--- PAINEL ELCDX v3.5 Prison Life - PARTE 5
-local cornerMin = Instance.new("UICorner", bMin)
-cornerMin.CornerRadius = UDim.new(0, 5)
-
-local nav = Instance.new("Frame", f) 
-nav.Size = UDim2.new(1, 0, 0, 25) 
-nav.Position = UDim2.new(0, 0, 0, 40) 
+local nav = Instance.new("Frame", frame)
+nav.Size = UDim2.new(1, 0, 0, 30)
+nav.Position = UDim2.new(0, 0, 0, 40)
 nav.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
 
-local btns = {} 
-local pgs_count = 4 
-for i = 1, pgs_count do 
-    local b = Instance.new("TextButton", nav) 
-    b.Size = UDim2.new(0, 35, 0, 22) 
-    b.Position = UDim2.new(0, 5 + 38 * (i - 1), 0, 1.5) 
-    b.Text = tostring(i) 
-    b.Font = Enum.Font.Code 
-    b.BackgroundColor3 = i == 1 and Color3.fromRGB(50, 50, 50) or Color3.fromRGB(35, 35, 35) 
-    b.TextColor3 = i == 1 and Color3.fromRGB(0, 255, 0) or Color3.fromRGB(255, 255, 255) 
-    b.TextSize = 12 
-    b.Parent = nav
-    local cornerNav = Instance.new("UICorner", b)
-    cornerNav.CornerRadius = UDim.new(0, 4)
-    btns[i] = b 
+local btns = {}
+local maxPages = 4
+for i=1, maxPages do
+    local b = Instance.new("TextButton", nav)
+    b.Size = UDim2.new(0, 50, 0, 25)
+    b.Position = UDim2.new(0, 5+(55*(i-1)), 0, 2)
+    b.Text = tostring(i)
+    b.Font = Enum.Font.Code
+    b.BackgroundColor3 = (i == 1) and Color3.fromRGB(0,255,0) or Color3.fromRGB(35,35,35)
+    b.TextColor3 = (i == 1) and Color3.fromRGB(0,0,0) or Color3.fromRGB(255,255,255)
+    b.TextSize = 14
+    btns[i] = b
 end
 
--- PAINEL ELCDX v3.5 Prison Life - PARTE 6
-local pgs = {} 
-for i = 1, pgs_count do 
-    local p = Instance.new("ScrollingFrame", f) 
-    p.Size = UDim2.new(1, -10, 1, -70) 
-    p.Position = UDim2.new(0, 5, 0, 68) 
-    p.CanvasSize = UDim2.new(0, 0, 0, 0) 
-    p.ScrollBarThickness = 4 
-    p.ScrollBarImageColor3 = Color3.fromRGB(0, 255, 0) 
-    p.BackgroundColor3 = Color3.fromRGB(20, 20, 20) 
-    p.BorderSizePixel = 0 
-    p.Visible = i == 1
-    p.Parent = f
-    
-    local cornerPg = Instance.new("UICorner", p)
-    cornerPg.CornerRadius = UDim.new(0, 6)
-    
-    local container = Instance.new("Frame", p) 
-    container.Size = UDim2.new(1, 0, 0, 0) 
-    container.BackgroundTransparency = 1 
-    local l = Instance.new("UIListLayout", container) 
-    l.Padding = UDim.new(0, 3) 
-    l.SortOrder = Enum.SortOrder.LayoutOrder
-    l:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()
-        container.Size = UDim2.new(1, 0, 0, l.AbsoluteContentSize.Y) 
-        p.CanvasSize = UDim2.new(0, 0, 0, l.AbsoluteContentSize.Y + 10) 
-    end) 
-    pgs[i] = {scrolling = p, container = container} 
+local pages = {}
+for i=1, maxPages do
+    local p = Instance.new("ScrollingFrame", frame)
+    p.Size = UDim2.new(1, -10, 1, -80)
+    p.Position = UDim2.new(0, 5, 0, 75)
+    p.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
+    p.Visible = (i == 1)
+    p.ScrollBarThickness = 6
+    local container = Instance.new("Frame", p)
+    container.Size = UDim2.new(1, 0, 0, 0)
+    container.BackgroundTransparency = 1
+    local layout = Instance.new("UIListLayout", container)
+    layout.Padding = UDim.new(0, 5)
+    layout:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()
+        container.Size = UDim2.new(1, 0, 0, layout.AbsoluteContentSize.Y)
+        p.CanvasSize = UDim2.new(0, 0, 0, layout.AbsoluteContentSize.Y + 10)
+    end)
+    pages[i] = {scrolling = p, container = container}
+end
+-- Continue nas partes seguintes...
+-- PAINEL ELCDX 3.5 - Prison Life - Parte 4
+for _,tp in pairs(teleportes) do
+    local btn = Instance.new("TextButton", pages[1].container)
+    btn.Size = UDim2.new(1, -10, 0, 28)
+    btn.BackgroundColor3 = Color3.fromRGB(35,35,35)
+    btn.TextColor3 = Color3.fromRGB(255,255,255)
+    btn.Font = Enum.Font.Code
+    btn.TextSize = 12
+    btn.Text = "⇨ "..tp[1]
+    btn.TextXAlignment = Enum.TextXAlignment.Left
+    local pad = Instance.new("UIPadding", btn)
+    pad.PaddingLeft = UDim.new(0,8)
+    btn.MouseButton1Click:Connect(function() tpSimples(tp[2]) end)
 end
 
--- PAINEL ELCDX v3.5 Prison Life - PARTE 7 (Página 1 - Teleportes)
-for _, v in ipairs(tps) do 
-    local b = Instance.new("TextButton", pgs[1].container) 
-    b.Size = UDim2.new(1, -10, 0, 28) 
-    b.BackgroundColor3 = Color3.fromRGB(35, 35, 35) 
-    b.TextColor3 = Color3.fromRGB(255, 255, 255) 
-    b.Font = Enum.Font.Code 
-    b.TextSize = 10 
-    b.TextXAlignment = Enum.TextXAlignment.Left
-    local cornerTp = Instance.new("UICorner", b)
-    cornerTp.CornerRadius = UDim.new(0, 5)
-    local pad = Instance.new("UIPadding", b) 
-    pad.PaddingLeft = UDim.new(0, 8) 
-    b.Text = "➤ " .. v[1] 
-    b.MouseButton1Click:Connect(function() tpSimples(v[2]) end) 
+local statusLabel = Instance.new("TextLabel", pages[2].container)
+statusLabel.Size = UDim2.new(1, -10, 0, 25)
+statusLabel.BackgroundTransparency = 1
+statusLabel.Text = "[STATUS]: OFFLINE"
+statusLabel.Font = Enum.Font.Code
+statusLabel.TextColor3 = Color3.fromRGB(150,150,150)
+statusLabel.TextSize = 13
+statusLabel.TextXAlignment = Enum.TextXAlignment.Left
+local padStatus = Instance.new("UIPadding", statusLabel)
+padStatus.PaddingLeft = UDim.new(0,8)
+
+local btnFarm = Instance.new("TextButton", pages[2].container)
+btnFarm.Size = UDim2.new(1, -10, 0, 35)
+btnFarm.BackgroundColor3 = Color3.fromRGB(0,150,0)
+btnFarm.Text = "▶ Iniciar Farm Guarda"
+btnFarm.TextColor3 = Color3.fromRGB(255,255,255)
+btnFarm.Font = Enum.Font.Code
+btnFarm.TextSize = 14
+local cornerFarm = Instance.new("UICorner", btnFarm)
+cornerFarm.CornerRadius = UDim.new(0,6)
+
+local dinheiroLabel = Instance.new("TextLabel", pages[2].container)
+dinheiroLabel.Size = UDim2.new(1, -10, 0, 22)
+dinheiroLabel.BackgroundTransparency = 1
+dinheiroLabel.Text = "Dinheiro: R$0"
+dinheiroLabel.Font = Enum.Font.Code
+dinheiroLabel.TextColor3 = Color3.fromRGB(200,200,200)
+dinheiroLabel.TextSize = 13
+dinheiroLabel.TextXAlignment = Enum.TextXAlignment.Left
+local padDin = Instance.new("UIPadding", dinheiroLabel)
+padDin.PaddingLeft = UDim.new(0,8)
+
+-- PAINEL ELCDX 3.5 - Prison Life - Parte 5
+local function noTimeGuarda()
+    return LocalPlayer.Team and (LocalPlayer.Team.Name == "Guards" or LocalPlayer.Team.Name == "Police")
 end
 
--- PAINEL ELCDX v3.5 Prison Life - PARTE 8 (Página 2 - Farm/Status)
-local st = Instance.new("TextLabel", pgs[2].container) 
-st.Size = UDim2.new(1, 0, 0, 22) 
-st.BackgroundTransparency = 1 
-st.Text = "[STATUS]: OFFLINE" 
-st.Font = Enum.Font.Code 
-st.TextColor3 = Color3.fromRGB(150, 150, 150) 
-st.TextSize = 11 
-st.TextXAlignment = Enum.TextXAlignment.Left 
-local pad1 = Instance.new("UIPadding", st) 
-pad1.PaddingLeft = UDim.new(0, 8)
-
-local fb = Instance.new("TextButton", pgs[2].container) 
-fb.Size = UDim2.new(1, -10, 0, 35) 
-fb.BackgroundColor3 = Color3.fromRGB(0, 150, 0) 
-fb.Text = "🚀 Começar Farm Auto-Arrest" 
-fb.TextColor3 = Color3.fromRGB(255, 255, 255) 
-fb.Font = Enum.Font.Code 
-fb.TextSize = 12
-local cornerFarm = Instance.new("UICorner", fb)
-cornerFarm.CornerRadius = UDim.new(0, 6)
-
-local dl = Instance.new("TextLabel", pgs[2].container) 
-dl.Size = UDim2.new(1, 0, 0, 22) 
-dl.BackgroundTransparency = 1 
-dl.Text = "Dinheiro farmado: $0" 
-dl.Font = Enum.Font.Code 
-dl.TextColor3 = Color3.fromRGB(200, 200, 200) 
-dl.TextSize = 11 
-dl.TextXAlignment = Enum.TextXAlignment.Left 
-local pad2 = Instance.new("UIPadding", dl) 
-pad2.PaddingLeft = UDim.new(0, 8)
-
--- PAINEL ELCDX v3.5 Prison Life - PARTE 9 (Funções Farm Prison Life)
-local function estaEmTeamGuarda()
-    return LocalPlayer.Team and (LocalPlayer.Team.Name:find("Guard") or LocalPlayer.Team.Name:find("Police"))
-end
-
-local function encontrarCriminoso()
-    local lp = LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart")
-    if not lp then return end
-    local alvo, dist = nil, math.huge
-    for _, player in pairs(Players:GetPlayers()) do
-        if player ~= LocalPlayer and player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
-            if player.Team and player.Team.Name:find("Prisoner") or player.Team.Name:find("Criminal") then
-                local d = (player.Character.HumanoidRootPart.Position - lp.Position).Magnitude
-                if d < dist and d < 500 then
-                    alvo, dist = player, d
-                end
+local function encontrarPrisioneiro()
+    local meuHRP = LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart")
+    if not meuHRP then return nil end
+    local alvo, distMin = nil, math.huge
+    for _,p in pairs(Players:GetPlayers()) do
+        if p ~= LocalPlayer and p.Team and (p.Team.Name == "Prisoners" or p.Team.Name == "Criminals") 
+        and p.Character and p.Character:FindFirstChild("HumanoidRootPart") then
+            local dist = (p.Character.HumanoidRootPart.Position - meuHRP.Position).Magnitude
+            if dist < distMin and dist < 40 then
+                alvo = p
+                distMin = dist
             end
         end
     end
     return alvo
 end
 
-fb.MouseButton1Click:Connect(function() 
-    if farmando then 
-        farmando = false 
-        st.Text = "[STATUS]: OFFLINE" 
-        st.TextColor3 = Color3.fromRGB(150, 150, 150) 
-        fb.Text = "🚀 Começar Farm Auto-Arrest" 
-        fb.BackgroundColor3 = Color3.fromRGB(0, 150, 0)
-        notif("Farm Prison Life parado.") 
-        return 
-    end 
-    farmando = true 
-    notif("🚀 Iniciando Farm Auto-Arrest Prison Life...") 
-    st.Text = "[STATUS]: FARMANDO" 
-    st.TextColor3 = Color3.fromRGB(0, 255, 0) 
-    fb.Text = "⏹️ Parar Farm" 
-    fb.BackgroundColor3 = Color3.fromRGB(200, 0, 0)
+btnFarm.MouseButton1Click:Connect(function()
+    if farmando then
+        farmando = false
+        statusLabel.Text = "[STATUS]: OFFLINE"
+        statusLabel.TextColor3 = Color3.fromRGB(150,150,150)
+        btnFarm.Text = "▶ Iniciar Farm Guarda"
+        btnFarm.BackgroundColor3 = Color3.fromRGB(0,150,0)
+        notificar("Farm de guarda parado!")
+        return
+    end
     
-    if not estaEmTeamGuarda() then 
-        notif("⚠️ Mude para time Guarda/Police para farmar!") 
-        farmando = false 
-        st.Text = "[STATUS]: OFFLINE" 
-        fb.Text = "🚀 Começar Farm Auto-Arrest" 
-        fb.BackgroundColor3 = Color3.fromRGB(0, 150, 0)
-        return 
-    end 
+    if not noTimeGuarda() then
+        notificar("Entre no time Guarda/Police primeiro!")
+        return
+    end
     
-    if LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart") then 
-        posicaoOriginal = LocalPlayer.Character.HumanoidRootPart.CFrame 
-    end 
+    farmando = true
+    statusLabel.Text = "[STATUS]: FARMANDO"
+    statusLabel.TextColor3 = Color3.fromRGB(0,255,0)
+    btnFarm.Text = "⏹️ Parar Farm"
+    btnFarm.BackgroundColor3 = Color3.fromRGB(200,0,0)
+    dinheiroFarmado = 0
+    dinheiroLabel.Text = "Dinheiro: R$0"
     
-    task.spawn(function() 
-        while farmando do 
-            local criminoso = encontrarCriminoso()
-            if criminoso and criminoso.Character and criminoso.Character:FindFirstChild("HumanoidRootPart") then
-                tpSimples(criminoso.Character.HumanoidRootPart.Position + Vector3.new(0, 5, 0))
-                task.wait(0.5)
-                -- Simula arrest (fireproximityprompt ou arrest function)
+    task.spawn(function()
+        while farmando do
+            local prisioneiro = encontrarPrisioneiro()
+            if prisioneiro and prisioneiro.Character and prisioneiro.Character:FindFirstChild("Head") then
+                tpSimples(prisioneiro.Character.HumanoidRootPart.Position + Vector3.new(0,5,0))
+                task.wait(0.3)
+                pcall(function()
+                    workspace.Remote.arrest:InvokeServer(prisioneiro.Character.Head)
+                end)
                 dinheiroFarmado = dinheiroFarmado + 500
-                dl.Text = "Dinheiro farmado: $" .. dinheiroFarmado
+                dinheiroLabel.Text = "Dinheiro: R$"..dinheiroFarmado
             end
-            task.wait(0.3) 
-        end 
-    end) 
+            task.wait(0.8)
+        end
+    end)
 end)
 
--- PAINEL ELCDX v3.5 Prison Life - PARTE 10 (Página 3 - ESP/Noclip/Fly/Speed)
-local be = Instance.new("TextButton", pgs[3].container) 
-be.Size = UDim2.new(1, -10, 0, 32) 
-be.BackgroundColor3 = Color3.fromRGB(50, 50, 50) 
-be.Text = "👁️ ESP (Desativado)" 
-be.TextColor3 = Color3.fromRGB(255, 255, 255) 
-be.Font = Enum.Font.Code 
-be.TextSize = 12
-local cornerEsp = Instance.new("UICorner", be)
-cornerEsp.CornerRadius = UDim.new(0, 5)
-
-local bn = Instance.new("TextButton", pgs[3].container) 
-bn.Size = UDim2.new(1, -10, 0, 32) 
-bn.BackgroundColor3 = Color3.fromRGB(50, 50, 50) 
-bn.Text = "🚫 Noclip (Desativado)" 
-bn.TextColor3 = Color3.fromRGB(255, 255, 255) 
-bn.Font = Enum.Font.Code 
-bn.TextSize = 12
-local cornerNoclip = Instance.new("UICorner", bn)
-cornerNoclip.CornerRadius = UDim.new(0, 5)
-
-local bf = Instance.new("TextButton", pgs[3].container) 
-bf.Size = UDim2.new(1, -10, 0, 32) 
-bf.BackgroundColor3 = Color3.fromRGB(50, 50, 50) 
-bf.Text = "🕊️ Fly (Desativado)" 
-bf.TextColor3 = Color3.fromRGB(255, 255, 255) 
-bf.Font = Enum.Font.Code 
-bf.TextSize = 12
-local cornerFly = Instance.new("UICorner", bf)
-cornerFly.CornerRadius = UDim.new(0, 5)
-
-local wsFrame = Instance.new("Frame", pgs[3].container) 
-wsFrame.Size = UDim2.new(1, -10, 0, 65) 
-wsFrame.BackgroundColor3 = Color3.fromRGB(30, 30, 30) 
-wsFrame.BorderSizePixel = 0
-local cornerWs = Instance.new("UICorner", wsFrame)
-cornerWs.CornerRadius = UDim.new(0, 6)
-
-local wsLabel = Instance.new("TextLabel", wsFrame) 
-wsLabel.Size = UDim2.new(1, 0, 0, 25) 
-wsLabel.Position = UDim2.new(0, 0, 0, 2) 
-wsLabel.BackgroundTransparency = 1 
-wsLabel.Text = "⚡ WALKSPEED Prison Life" 
-wsLabel.Font = Enum.Font.Code 
-wsLabel.TextColor3 = Color3.fromRGB(0, 255, 0) 
-wsLabel.TextSize = 11
-
-local wsInput = Instance.new("TextBox", wsFrame) 
-wsInput.Size = UDim2.new(1, -12, 0, 28) 
-wsInput.Position = UDim2.new(0, 6, 0, 30) 
-wsInput.BackgroundColor3 = Color3.fromRGB(40, 40, 40) 
-wsInput.BorderSizePixel = 0
-wsInput.Text = "50" 
-wsInput.PlaceholderText = "Velocidade..." 
-wsInput.TextColor3 = Color3.fromRGB(255, 255, 255) 
-wsInput.Font = Enum.Font.Code 
-wsInput.TextSize = 13
-local cornerInput = Instance.new("UICorner", wsInput)
-cornerInput.CornerRadius = UDim.new(0, 5)
-
--- PAINEL ELCDX v3.5 Prison Life - PARTE 11 (Funções Página 3)
-be.MouseButton1Click:Connect(function() 
-    espAtivo = not espAtivo 
-    be.Text = espAtivo and "👁️ ESP (Ativado)" or "👁️ ESP (Desativado)" 
-    be.BackgroundColor3 = espAtivo and Color3.fromRGB(0, 200, 0) or Color3.fromRGB(50, 50, 50)
-    for _, p in pairs(Players:GetPlayers()) do 
-        if p.Character and p ~= LocalPlayer then 
-            local ex = p.Character:FindFirstChild("ESPHighlight") 
-            if espAtivo and not ex then 
-                local hl = Instance.new("Highlight", p.Character) 
-                hl.Name = "ESPHighlight" 
-                hl.FillTransparency = 0.5 
-                hl.FillColor = Color3.fromRGB(255, 0, 0) 
-                hl.OutlineColor = Color3.fromRGB(255, 255, 0) 
-            elseif not espAtivo and ex then 
-                ex:Destroy() 
-            end 
-        end 
-    end 
-end)
-
-bn.MouseButton1Click:Connect(function() 
-    noclipAtivo = not noclipAtivo 
-    bn.Text = noclipAtivo and "🚫 Noclip (Ativado)" or "🚫 Noclip (Desativado)" 
-    bn.BackgroundColor3 = noclipAtivo and Color3.fromRGB(0, 200, 0) or Color3.fromRGB(50, 50, 50)
-end)
-
-bf.MouseButton1Click:Connect(function()
+-- PAINEL ELCDX 3.5 - Prison Life - Parte 6
+local btnFly = Instance.new("TextButton", pages[2].container)
+btnFly.Size = UDim2.new(1, -10, 0, 30)
+btnFly.BackgroundColor3 = Color3.fromRGB(0,100,200)
+btnFly.Text = "✈ Fly: OFF"
+btnFly.TextColor3 = Color3.fromRGB(255,255,255)
+btnFly.Font = Enum.Font.Code
+btnFly.TextSize = 13
+btnFly.MouseButton1Click:Connect(function()
     toggleFly()
-    bf.Text = flyAtivo and "🕊️ Fly (Ativado)" or "🕊️ Fly (Desativado)"
-    bf.BackgroundColor3 = flyAtivo and Color3.fromRGB(0, 200, 0) or Color3.fromRGB(50, 50, 50)
+    btnFly.Text = flyAtivo and "✈ Fly: ON" or "✈ Fly: OFF"
+    btnFly.BackgroundColor3 = flyAtivo and Color3.fromRGB(0,200,0) or Color3.fromRGB(0,100,200)
 end)
 
-wsInput.FocusLost:Connect(function(enterPressed) 
-    local velocidade = tonumber(wsInput.Text) 
-    if velocidade and LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("Humanoid") then 
-        LocalPlayer.Character.Humanoid.WalkSpeed = velocidade 
-        notif("Walkspeed Prison Life: " .. velocidade) 
-    else 
-        notif("Número inválido! Use 16-500") 
-        wsInput.Text = "50" 
-    end 
-end)
+local btnNoclip = Instance.new("TextButton", pages[3].container)
+btnNoclip.Size = UDim2.new(1, -10, 0, 30)
+btnNoclip.BackgroundColor3 = Color3.fromRGB(150,50,150)
+btnNoclip.Text = "👻 Noclip: OFF"
+btnNoclip.TextColor3 = Color3.fromRGB(255,255,255)
+btnNoclip.Font = Enum.Font.Code
+btnNoclip.TextSize = 13
 
--- PAINEL ELCDX v3.5 Prison Life - PARTE 12 (Fly Controls + Noclip Loop)
-RunService.Stepped:Connect(function() 
-    if noclipAtivo and LocalPlayer.Character then 
-        for _, part in pairs(LocalPlayer.Character:GetDescendants()) do 
-            if part:IsA("BasePart") and part ~= LocalPlayer.Character.HumanoidRootPart then 
-                part.CanCollide = false 
-            end 
-        end 
-    end
+local noclipLoop
+btnNoclip.MouseButton1Click:Connect(function()
+    noclipAtivo = not noclipAtivo
+    btnNoclip.Text = noclipAtivo and "👻 Noclip: ON" or "👻 Noclip: OFF"
+    btnNoclip.BackgroundColor3 = noclipAtivo and Color3.fromRGB(200,0,200) or Color3.fromRGB(150,50,150)
     
-    if flyAtivo and LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart") then
-        local humanoidRootPart = LocalPlayer.Character.HumanoidRootPart
-        local camera = workspace.CurrentCamera
-        local moveVector = humanoidRootPart.CFrame:VectorToWorldSpace(
-            (UserInputService:IsKeyDown(Enum.KeyCode.D) and Vector3.new(1, 0, 0)) or
-            (UserInputService:IsKeyDown(Enum.KeyCode.A) and Vector3.new(-1, 0, 0)) or
-            Vector3.new(0, 0, 0)
-        )
-        
-        local camLook = camera.CFrame.LookVector
-        local move = Vector3.new(moveVector.X, 0, moveVector.Z).Unit * flySpeed
-        
-        if UserInputService:IsKeyDown(Enum.KeyCode.W) then
-            move = move + camLook * flySpeed
-        elseif UserInputService:IsKeyDown(Enum.KeyCode.S) then
-            move = move - camLook * flySpeed
-        end
-        
-        if UserInputService:IsKeyDown(Enum.KeyCode.Space) then
-            move = move + Vector3.new(0, flySpeed, 0)
-        elseif UserInputService:IsKeyDown(Enum.KeyCode.LeftShift) then
-            move = move - Vector3.new(0, flySpeed, 0)
-        end
-        
-        if bodyVelocity then bodyVelocity.Velocity = move end
+    if noclipAtivo then
+        noclipLoop = RunService.Heartbeat:Connect(function()
+            if LocalPlayer.Character then
+                for _, part in pairs(LocalPlayer.Character:GetDescendants()) do
+                    if part:IsA("BasePart") and part.CanCollide then
+                        part.CanCollide = false
+                    end
+                end
+            end
+        end)
+        notificar("Noclip ativado!")
+    else
+        if noclipLoop then noclipLoop:Disconnect() end
+        notificar("Noclip desativado!")
     end
 end)
 
--- PAINEL ELCDX v3.5 Prison Life - PARTE 13 (Navegação + Minimize)
-local function mudaPag(n) 
-    paginaAtual = n 
-    if guiMinimizado then return end 
-    for i, p in ipairs(pgs) do 
-        p.scrolling.Visible = (i == n) 
-    end 
-    for i, b in ipairs(btns) do 
-        b.TextColor3 = i == n and Color3.fromRGB(0, 255, 0) or Color3.fromRGB(255, 255, 255) 
-        b.BackgroundColor3 = i == n and Color3.fromRGB(50, 50, 50) or Color3.fromRGB(35, 35, 35) 
-    end 
+-- PAINEL ELCDX 3.5 - Prison Life - Parte 7 (Sistema de Páginas)
+for i,btn in pairs(btns) do
+    btn.MouseButton1Click:Connect(function()
+        for j=1,maxPages do
+            pages[j].scrolling.Visible = false
+            btns[j].BackgroundColor3 = Color3.fromRGB(35,35,35)
+            btns[j].TextColor3 = Color3.fromRGB(255,255,255)
+        end
+        pages[i].scrolling.Visible = true
+        btn.BackgroundColor3 = Color3.fromRGB(0,255,0)
+        btn.TextColor3 = Color3.fromRGB(0,0,0)
+    end)
 end
 
-for i, b in ipairs(btns) do 
-    b.MouseButton1Click:Connect(function() mudaPag(i) end) 
-end
-
-bMin.MouseButton1Click:Connect(function() 
-    guiMinimizado = not guiMinimizado 
-    if guiMinimizado then 
-        for _, p in ipairs(pgs) do p.scrolling.Visible = false end 
-        nav.Visible = false 
-        f.Size = UDim2.new(0, 220, 0, 40) 
-        bMin.Text = "+" 
-        t.Text = "ELCDX Prison Life"
-    else 
-        for i, p in ipairs(pgs) do p.scrolling.Visible = (i == paginaAtual) end 
-        nav.Visible = true 
-        f.Size = UDim2.new(0, 220, 0, 280) 
-        bMin.Text = "-" 
-        t.Text = "PAINEL ELCDX v3.5 PRISON"
-    end 
+local btnEsp = Instance.new("TextButton", pages[3].container)
+btnEsp.Size = UDim2.new(1, -10, 0, 30)
+btnEsp.BackgroundColor3 = Color3.fromRGB(255,100,0)
+btnEsp.Text = "👁 ESP: OFF"
+btnEsp.TextColor3 = Color3.fromRGB(255,255,255)
+btnEsp.Font = Enum.Font.Code
+btnEsp.TextSize = 13
+btnEsp.MouseButton1Click:Connect(function()
+    espAtivo = not espAtivo
+    btnEsp.Text = espAtivo and "👁 ESP: ON" or "👁 ESP: OFF"
+    btnEsp.BackgroundColor3 = espAtivo and Color3.fromRGB(255,200,0) or Color3.fromRGB(255,100,0)
+    notificar(espAtivo and "ESP ativado!" or "ESP desativado!")
 end)
 
--- PAINEL ELCDX v3.5 Prison Life - PARTE 14 (Página 4 - Players + Final)
-local function atualizarListaJogadores() 
-    pgs[4].container:ClearAllChildren() 
-    if not pgs[4].container:FindFirstChild("UIListLayout") then 
-        local layout = Instance.new("UIListLayout", pgs[4].container) 
-        layout.Padding = UDim.new(0, 3) 
-        layout:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function() 
-            pgs[4].container.Size = UDim2.new(1, 0, 0, layout.AbsoluteContentSize.Y) 
-            pgs[4].scrolling.CanvasSize = UDim2.new(0, 0, 0, layout.AbsoluteContentSize.Y + 10) 
-        end) 
-    end 
-    for _, player in ipairs(Players:GetPlayers()) do 
-        if player ~= LocalPlayer then 
-            local frameJogador = Instance.new("Frame", pgs[4].container) 
-            frameJogador.Size = UDim2.new(1, -10, 0, 28) 
-            frameJogador.BackgroundTransparency = 1 
-            
-            local botao = Instance.new("TextButton", frameJogador) 
-            botao.Size = UDim2.new(1, -60, 1, 0) 
-            botao.BackgroundColor3 = Color3.fromRGB(40, 40, 40) 
-            botao.TextColor3 = Color3.fromRGB(255, 255, 255) 
-            botao.Font = Enum.Font.Code 
-            botao.TextSize = 10 
-            botao.TextXAlignment = Enum.TextXAlignment.Left 
-            local pad = Instance.new("UIPadding", botao) 
-            pad.PaddingLeft = UDim.new(0, 8) 
-            botao.Text = "👤 " .. player.Name .. " (@" .. player.DisplayName .. ")" 
-            local cornerPlayer = Instance.new("UICorner", botao)
-            cornerPlayer.CornerRadius = UDim.new(0, 5)
-            
-            botao.MouseButton1Click:Connect(function() 
-                if player.Character and player.Character:FindFirstChild("HumanoidRootPart") then 
-                    tpSimples(player.Character.HumanoidRootPart.Position) 
-                else 
-                    notif("Personagem de " .. player.Name .. " não encontrado!") 
-                end 
-            end) 
-            
-            local botaoSpec = Instance.new("TextButton", frameJogador) 
-            botaoSpec.Size = UDim2.new(0, 28, 1, 0) 
-            botaoSpec.Position = UDim2.new(1, -56, 0, 0) 
-            botaoSpec.BackgroundColor3 = Color3.fromRGB(0, 120, 255) 
-            botaoSpec.TextColor3 = Color3.fromRGB(255, 255, 255) 
-            botaoSpec.Font = Enum.Font.Code 
-            botaoSpec.TextSize = 11 
-            botaoSpec.Text = "👁️" 
-            local cornerSpec = Instance.new("UICorner", botaoSpec)
-            cornerSpec.CornerRadius = UDim.new(0, 4)
-            botaoSpec.MouseButton1Click:Connect(function() iniciarEspectacao(player) end) 
-        end 
-    end 
+btnMin.MouseButton1Click:Connect(function()
+    guiMinimizado = not guiMinimizado
+    frame.Size = guiMinimizado and UDim2.new(0,220,0,40) or UDim2.new(0,220,0,280)
+    for i=1,maxPages do pages[i].scrolling.Visible = false end
+    title.Text = guiMinimizado and "PAINEL ELCDX v3.5" or "PAINEL ELCDX v3.5 - Prison Life"
+end)
+
+-- Fly Speed Control
+local speedLabel = Instance.new("TextLabel", pages[2].container)
+speedLabel.Size = UDim2.new(1, -10, 0, 20)
+speedLabel.BackgroundTransparency = 1
+speedLabel.Text = "Velocidade Fly: "..flySpeed
+speedLabel.Font = Enum.Font.Code
+speedLabel.TextColor3 = Color3.fromRGB(180,180,180)
+speedLabel.TextSize = 12
+
+-- PAINEL ELCDX 3.5 - Prison Life - Parte 8 (Fly Speed + ESP Loop)
+local function atualizarFly()
+    if flyAtivo and bodyVelocity and LocalPlayer.Character then
+        local camera = workspace.CurrentCamera
+        local dir = Vector3.new(0,0,0)
+        if UserInputService:IsKeyDown(Enum.KeyCode.W) then dir = dir + camera.CFrame.LookVector end
+        if UserInputService:IsKeyDown(Enum.KeyCode.S) then dir = dir - camera.CFrame.LookVector end
+        if UserInputService:IsKeyDown(Enum.KeyCode.A) then dir = dir - camera.CFrame.RightVector end
+        if UserInputService:IsKeyDown(Enum.KeyCode.D) then dir = dir + camera.CFrame.RightVector end
+        if UserInputService:IsKeyDown(Enum.KeyCode.Space) then dir = dir + Vector3.new(0,1,0) end
+        if UserInputService:IsKeyDown(Enum.KeyCode.LeftShift) then dir = dir - Vector3.new(0,1,0) end
+        
+        bodyVelocity.Velocity = (dir.Unit * flySpeed) + Vector3.new(0,0.1,0)
+        bodyGyro.CFrame = camera.CFrame
+    end
 end
 
-Players.PlayerAdded:Connect(atualizarListaJogadores) 
-Players.PlayerRemoving:Connect(atualizarListaJogadores)
-atualizarListaJogadores()
+RunService.Heartbeat:Connect(atualizarFly)
 
-notif("🔥 PAINEL ELCDX v3.5 Prison Life carregado!")
-notif("✅ Fly, ESP, Noclip, Farm Auto-Arrest ativos!")
-notif("📱 GUI otimizada - Pressione - para minimizar")
+if espAtivo then
+    RunService.Heartbeat:Connect(function()
+        for _,v in pairs(Players:GetPlayers()) do
+            if v ~= LocalPlayer and v.Character and v.Character:FindFirstChild("Head") then
+                local esp = v.Character.Head:FindFirstChild("ESP_ELCDX")
+                if not esp then
+                    esp = Instance.new("BillboardGui", v.Character.Head)
+                    esp.Name = "ESP_ELCDX"
+                    esp.Size = UDim2.new(0,100,0,50)
+                    esp.StudsOffset = Vector3.new(0,3,0)
+                    local nome = Instance.new("TextLabel", esp)
+                    nome.Size = UDim2.new(1,0,0.5,0)
+                    nome.BackgroundTransparency = 1
+                    nome.Text = v.Name
+                    nome.TextColor3 = Color3.fromRGB(0,255,0)
+                    nome.Font = Enum.Font.Code
+                    nome.TextSize = 14
+                end
+            end
+        end
+    end)
+end
+
+-- Controles Fly Speed
+local function alterarSpeed(delta)
+    flySpeed = math.clamp(flySpeed + delta, 16, 200)
+    speedLabel.Text = "Velocidade Fly: "..flySpeed
+end
+
+UserInputService.InputBegan:Connect(function(input)
+    if input.KeyCode == Enum.KeyCode.KeyR then alterarSpeed(10)
+    elseif input.KeyCode == Enum.KeyCode.KeyE then alterarSpeed(-10) end
+end)
+
+notificar("PAINEL ELCDX v3.5 - Prison Life carregado!")
