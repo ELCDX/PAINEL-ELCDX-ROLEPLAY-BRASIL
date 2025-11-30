@@ -1,17 +1,16 @@
+-- PAINEL ELCDX v1.2 - PARTE 1
+
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
 local UserInputService = game:GetService("UserInputService")
 local Camera = workspace.CurrentCamera
 local TweenService = game:GetService("TweenService")
-local Stats = game:GetService("Stats")
 
 local LocalPlayer = Players.LocalPlayer
-local Mouse = LocalPlayer:GetMouse()
 
--- CONFIGURAÇÕES
 local FOV = 80
 local SMOOTHNESS = 0.35
-local AIM_ASSIST_ON = false
+local AIMBOT_ON = false
 local NOCLIP_ON = false
 local SPEED_ON = false
 local INFINITE_JUMP_ON = false
@@ -19,62 +18,12 @@ local WALK_SPEED = 16
 local SPRINT_SPEED = 40
 local GUI_MINIMIZED = false
 
--- TEAM CHECK
 local TARGET_PRESOS = false
 local TARGET_GUARDAS = false
 local TARGET_CRIMINOSOS = false
 
--- FUNÇÕES ESSENCIAIS
-local function checkcaller()
-    return true
-end
-
-local function newcclosure(func)
-    return func
-end
-
-local function getnamecallmethod()
-    return "Unknown"
-end
-
--- METATABLE HOOKS
-local mt = getrawmetatable(game)
-setreadonly(mt, false)
-
-local oldNamecall = mt.__namecall
-local oldIndex = mt.__index
-
-mt.__namecall = newcclosure(function(self, ...)
-    local method = getnamecallmethod()
-    if not checkcaller() then
-        if method == "Kick" or method == "kick" then
-            return wait(9e9)
-        end
-        if method == "FireServer" or method == "InvokeServer" then
-            if string.find(tostring(self), "Kick") or string.find(tostring(self), "Ban") then
-                return wait(9e9)
-            end
-        end
-    end
-    return oldNamecall(self, ...)
-end)
-
-mt.__index = newcclosure(function(self, key)
-    if not checkcaller() then
-        if key == "WalkSpeed" and self:IsA("Humanoid") then
-            if SPEED_ON then
-                return WALK_SPEED
-            end
-        end
-    end
-    return oldIndex(self, key)
-end)
-
-setreadonly(mt, true)
-
--- GUI PRINCIPAL
 local screenGui = Instance.new("ScreenGui")
-screenGui.Name = "ELCDXPanel"
+screenGui.Name = "PAINEL_ELCDX_v1_2"
 screenGui.ResetOnSpawn = false
 screenGui.Parent = LocalPlayer:WaitForChild("PlayerGui")
 
@@ -96,7 +45,7 @@ local title = Instance.new("TextLabel")
 title.Size = UDim2.new(1, -70, 0, 22)
 title.Position = UDim2.new(0, 5, 0, 3)
 title.BackgroundTransparency = 1
-title.Text = "ELCDX"
+title.Text = "PAINEL ELCDX v1.2"
 title.TextColor3 = Color3.fromRGB(255, 255, 255)
 title.TextSize = 12
 title.Font = Enum.Font.GothamBold
@@ -147,7 +96,7 @@ statsCorner.CornerRadius = UDim.new(0, 4)
 statsCorner.Parent = statsFrame
 
 local fpsLabel = Instance.new("TextLabel")
-fpsLabel.Size = UDim2.new(0.5, 0, 1, 0)
+fpsLabel.Size = UDim2.new(1, -10, 1, 0)
 fpsLabel.Position = UDim2.new(0, 5, 0, 0)
 fpsLabel.BackgroundTransparency = 1
 fpsLabel.Text = "FPS: 0"
@@ -157,17 +106,6 @@ fpsLabel.Font = Enum.Font.GothamBold
 fpsLabel.TextXAlignment = Enum.TextXAlignment.Left
 fpsLabel.Parent = statsFrame
 
-local pingLabel = Instance.new("TextLabel")
-pingLabel.Size = UDim2.new(0.5, -5, 1, 0)
-pingLabel.Position = UDim2.new(0.5, 0, 0, 0)
-pingLabel.BackgroundTransparency = 1
-pingLabel.Text = "PING: 0ms"
-pingLabel.TextColor3 = Color3.fromRGB(255, 255, 0)
-pingLabel.TextSize = 10
-pingLabel.Font = Enum.Font.GothamBold
-pingLabel.TextXAlignment = Enum.TextXAlignment.Right
-pingLabel.Parent = statsFrame
-
 local scrollFrame = Instance.new("ScrollingFrame")
 scrollFrame.Size = UDim2.new(1, 0, 1, -50)
 scrollFrame.Position = UDim2.new(0, 0, 0, 50)
@@ -176,60 +114,94 @@ scrollFrame.BorderSizePixel = 0
 scrollFrame.ScrollBarThickness = 3
 scrollFrame.ScrollBarImageColor3 = Color3.fromRGB(255, 0, 0)
 scrollFrame.CanvasSize = UDim2.new(0, 0, 0, 320)
-scrollFrame.Visible = true
 scrollFrame.Parent = mainFrame
 
+-- PAINEL ELCDX v1.2 - PARTE 2 (AIMBOT + TIMES + MOVIMENTO)
+
+local aimbotContainer = Instance.new("Frame")
+aimbotContainer.Size = UDim2.new(1, -10, 0, 30)
+aimbotContainer.Position = UDim2.new(0, 5, 0, 5)
+aimbotContainer.BackgroundTransparency = 1
+aimbotContainer.Parent = scrollFrame
+
 local aimbotButton = Instance.new("TextButton")
-aimbotButton.Size = UDim2.new(1, -10, 0, 30)
-aimbotButton.Position = UDim2.new(0, 5, 0, 5)
+aimbotButton.Size = UDim2.new(1, 0, 1, 0)
+aimbotButton.Position = UDim2.new(0, 0, 0, 0)
 aimbotButton.BackgroundColor3 = Color3.fromRGB(45, 45, 45)
 aimbotButton.TextColor3 = Color3.new(1, 1, 1)
 aimbotButton.Text = "AIMBOT: OFF"
 aimbotButton.Font = Enum.Font.GothamBold
 aimbotButton.TextSize = 11
-aimbotButton.Parent = scrollFrame
+aimbotButton.TextXAlignment = Enum.TextXAlignment.Left
+aimbotButton.Parent = aimbotContainer
 
 local aimbotCorner = Instance.new("UICorner")
 aimbotCorner.CornerRadius = UDim.new(0, 4)
 aimbotCorner.Parent = aimbotButton
 
+local aimbotExpand = Instance.new("TextButton")
+aimbotExpand.Size = UDim2.new(0, 18, 0, 18)
+aimbotExpand.Position = UDim2.new(1, -22, 0.5, -9)
+aimbotExpand.BackgroundColor3 = Color3.fromRGB(0, 170, 0)
+aimbotExpand.TextColor3 = Color3.new(1, 1, 1)
+aimbotExpand.Text = "+"
+aimbotExpand.Font = Enum.Font.GothamBold
+aimbotExpand.TextSize = 14
+aimbotExpand.Parent = aimbotButton
+
+local aimbotExpandCorner = Instance.new("UICorner")
+aimbotExpandCorner.CornerRadius = UDim.new(0, 4)
+aimbotExpandCorner.Parent = aimbotExpand
+
+local teamsFrame = Instance.new("Frame")
+teamsFrame.Size = UDim2.new(1, -10, 0, 82)
+teamsFrame.Position = UDim2.new(0, 5, 0, 38)
+teamsFrame.BackgroundColor3 = Color3.fromRGB(15, 15, 15)
+teamsFrame.BorderSizePixel = 0
+teamsFrame.Visible = false
+teamsFrame.Parent = scrollFrame
+
+local teamsCorner = Instance.new("UICorner")
+teamsCorner.CornerRadius = UDim.new(0, 4)
+teamsCorner.Parent = teamsFrame
+
 local presosButton = Instance.new("TextButton")
-presosButton.Size = UDim2.new(1, -10, 0, 26)
-presosButton.Position = UDim2.new(0, 5, 0, 40)
+presosButton.Size = UDim2.new(1, -6, 0, 24)
+presosButton.Position = UDim2.new(0, 3, 0, 3)
 presosButton.BackgroundColor3 = Color3.fromRGB(45, 45, 45)
 presosButton.TextColor3 = Color3.new(1, 1, 1)
 presosButton.Text = "PRESOS"
 presosButton.Font = Enum.Font.GothamBold
 presosButton.TextSize = 10
-presosButton.Parent = scrollFrame
+presosButton.Parent = teamsFrame
 
 local presosCorner = Instance.new("UICorner")
 presosCorner.CornerRadius = UDim.new(0, 4)
 presosCorner.Parent = presosButton
 
 local guardasButton = Instance.new("TextButton")
-guardasButton.Size = UDim2.new(1, -10, 0, 26)
-guardasButton.Position = UDim2.new(0, 5, 0, 71)
+guardasButton.Size = UDim2.new(1, -6, 0, 24)
+guardasButton.Position = UDim2.new(0, 3, 0, 29)
 guardasButton.BackgroundColor3 = Color3.fromRGB(45, 45, 45)
 guardasButton.TextColor3 = Color3.new(1, 1, 1)
 guardasButton.Text = "GUARDAS"
 guardasButton.Font = Enum.Font.GothamBold
 guardasButton.TextSize = 10
-guardasButton.Parent = scrollFrame
+guardasButton.Parent = teamsFrame
 
 local guardasCorner = Instance.new("UICorner")
 guardasCorner.CornerRadius = UDim.new(0, 4)
 guardasCorner.Parent = guardasButton
 
 local criminososButton = Instance.new("TextButton")
-criminososButton.Size = UDim2.new(1, -10, 0, 26)
-criminososButton.Position = UDim2.new(0, 5, 0, 102)
+criminososButton.Size = UDim2.new(1, -6, 0, 24)
+criminososButton.Position = UDim2.new(0, 3, 0, 55)
 criminososButton.BackgroundColor3 = Color3.fromRGB(45, 45, 45)
 criminososButton.TextColor3 = Color3.new(1, 1, 1)
 criminososButton.Text = "CRIMINOSOS"
 criminososButton.Font = Enum.Font.GothamBold
 criminososButton.TextSize = 10
-criminososButton.Parent = scrollFrame
+criminososButton.Parent = teamsFrame
 
 local criminososCorner = Instance.new("UICorner")
 criminososCorner.CornerRadius = UDim.new(0, 4)
@@ -277,48 +249,25 @@ local infiniteJumpCorner = Instance.new("UICorner")
 infiniteJumpCorner.CornerRadius = UDim.new(0, 4)
 infiniteJumpCorner.Parent = infiniteJumpButton
 
--- DESENHOS
-local tracerLine = Drawing.new("Line")
-tracerLine.Visible = false
-tracerLine.Color = Color3.fromRGB(255, 0, 0)
-tracerLine.Thickness = 1
-tracerLine.Transparency = 1
+-- PAINEL ELCDX v1.2 - PARTE 3 (FPS, MINIMIZAR, BOTOES, AIMBOT CLÁSSICO)
 
-local espBox = Drawing.new("Square")
-espBox.Visible = false
-espBox.Color = Color3.fromRGB(0, 255, 0)
-espBox.Thickness = 1
-espBox.Filled = false
-espBox.Transparency = 1
-
--- ATUALIZAR FPS/PING
 local lastUpdate = tick()
 local fps = 0
 spawn(function()
-    while wait(0.5) do
+    while task.wait(0.5) do
         if tick() - lastUpdate >= 1 then
             fps = math.floor(1 / RunService.RenderStepped:Wait())
             lastUpdate = tick()
         end
         fpsLabel.Text = "FPS: " .. fps
-        
-        local ping = math.floor(Stats.Network.ServerStatsItem["Data Ping"]:GetValue())
-        pingLabel.Text = "PING: " .. ping .. "ms"
-        
-        if ping < 100 then
-            pingLabel.TextColor3 = Color3.fromRGB(0, 255, 0)
-        elseif ping < 200 then
-            pingLabel.TextColor3 = Color3.fromRGB(255, 255, 0)
-        else
-            pingLabel.TextColor3 = Color3.fromRGB(255, 0, 0)
-        end
     end
 end)
 
--- MINIMIZAR
+local noclipConnection
+local infiniteJumpConnection
+
 local function toggleMinimize()
     GUI_MINIMIZED = not GUI_MINIMIZED
-    
     if GUI_MINIMIZED then
         mainFrame.Size = UDim2.new(0, 160, 0, 28)
         scrollFrame.Visible = false
@@ -332,97 +281,58 @@ local function toggleMinimize()
     end
 end
 
--- FECHAR
-local noclipConnection
-local infiniteJumpConnection
 local function closeGUI()
-    AIM_ASSIST_ON = false
+    AIMBOT_ON = false
     NOCLIP_ON = false
     SPEED_ON = false
     INFINITE_JUMP_ON = false
-    
+
     if LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("Humanoid") then
         LocalPlayer.Character.Humanoid.WalkSpeed = WALK_SPEED
     end
-    
+
     if noclipConnection then
         noclipConnection:Disconnect()
     end
-    
+
     if infiniteJumpConnection then
         infiniteJumpConnection:Disconnect()
     end
-    
-    tracerLine:Remove()
-    espBox:Remove()
+
     screenGui:Destroy()
 end
 
 minimizeButton.MouseButton1Click:Connect(toggleMinimize)
 closeButton.MouseButton1Click:Connect(closeGUI)
 
--- VERIFICAR TEAM
-local function CheckTeam(player)
-    if not (TARGET_PRESOS or TARGET_GUARDAS or TARGET_CRIMINOSOS) then
-        return false
-    end
-    
-    if player.Team then
-        local teamName = player.Team.Name
-        local teamColor = player.Team.TeamColor.Name
-        
-        if TARGET_PRESOS and (teamName:lower():find("prisoner") or teamColor == "Bright orange") then
-            return true
-        end
-        if TARGET_GUARDAS and (teamName:lower():find("guard") or teamColor == "Bright blue") then
-            return true
-        end
-        if TARGET_CRIMINOSOS and (teamName:lower():find("criminal") or teamColor == "Really red") then
-            return true
-        end
-    end
-    
-    return false
-end
+aimbotExpand.MouseButton1Click:Connect(function()
+    teamsFrame.Visible = not teamsFrame.Visible
+    aimbotExpand.Text = teamsFrame.Visible and "-" or "+"
+end)
 
--- ENCONTRAR JOGADOR MAIS PRÓXIMO
-function GetClosestPlayer()
-    local MaxDist = FOV
-    local ClosestPlayer = nil
-    local ScreenCenter = Vector2.new(Camera.ViewportSize.X / 2, Camera.ViewportSize.Y / 2)
-    
-    for _, Player in pairs(Players:GetPlayers()) do
-        if Player ~= LocalPlayer and Player.Character and CheckTeam(Player) then
-            local Humanoid = Player.Character:FindFirstChild("Humanoid")
-            local Head = Player.Character:FindFirstChild("Head")
-            
-            if Humanoid and Humanoid.Health > 0 and Head then
-                local HeadPos, OnScreen = Camera:WorldToViewportPoint(Head.Position)
-                
-                if OnScreen then
-                    local HeadScreenPos = Vector2.new(HeadPos.X, HeadPos.Y)
-                    local Distance = (HeadScreenPos - ScreenCenter).Magnitude
-                    
-                    if Distance < MaxDist then
-                        MaxDist = Distance
-                        ClosestPlayer = Player.Character
-                    end
-                end
-            end
-        end
-    end
-    
-    return ClosestPlayer
-end
+presosButton.MouseButton1Click:Connect(function()
+    TARGET_PRESOS = not TARGET_PRESOS
+    presosButton.BackgroundColor3 =
+        TARGET_PRESOS and Color3.fromRGB(0,170,0) or Color3.fromRGB(45,45,45)
+end)
 
--- NOCLIP
-local function toggleNoclip()
+guardasButton.MouseButton1Click:Connect(function()
+    TARGET_GUARDAS = not TARGET_GUARDAS
+    guardasButton.BackgroundColor3 =
+        TARGET_GUARDAS and Color3.fromRGB(0,170,0) or Color3.fromRGB(45,45,45)
+end)
+
+criminososButton.MouseButton1Click:Connect(function()
+    TARGET_CRIMINOSOS = not TARGET_CRIMINOSOS
+    criminososButton.BackgroundColor3 =
+        TARGET_CRIMINOSOS and Color3.fromRGB(0,170,0) or Color3.fromRGB(45,45,45)
+end)
+
+noclipButton.MouseButton1Click:Connect(function()
     NOCLIP_ON = not NOCLIP_ON
-    
     if NOCLIP_ON then
         noclipButton.Text = "NOCLIP: ON"
-        noclipButton.BackgroundColor3 = Color3.fromRGB(0, 170, 0)
-        
+        noclipButton.BackgroundColor3 = Color3.fromRGB(0,170,0)
         noclipConnection = RunService.Stepped:Connect(function()
             if LocalPlayer.Character then
                 for _, part in pairs(LocalPlayer.Character:GetDescendants()) do
@@ -434,41 +344,35 @@ local function toggleNoclip()
         end)
     else
         noclipButton.Text = "NOCLIP: OFF"
-        noclipButton.BackgroundColor3 = Color3.fromRGB(45, 45, 45)
-        
+        noclipButton.BackgroundColor3 = Color3.fromRGB(45,45,45)
         if noclipConnection then
             noclipConnection:Disconnect()
         end
     end
-end
+end)
 
--- SPEED
-local function toggleSpeed()
+speedButton.MouseButton1Click:Connect(function()
     SPEED_ON = not SPEED_ON
-    
     if SPEED_ON then
         speedButton.Text = "SPEED: ON"
-        speedButton.BackgroundColor3 = Color3.fromRGB(0, 170, 0)
+        speedButton.BackgroundColor3 = Color3.fromRGB(0,170,0)
         if LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("Humanoid") then
             LocalPlayer.Character.Humanoid.WalkSpeed = SPRINT_SPEED
         end
     else
         speedButton.Text = "SPEED: OFF"
-        speedButton.BackgroundColor3 = Color3.fromRGB(45, 45, 45)
+        speedButton.BackgroundColor3 = Color3.fromRGB(45,45,45)
         if LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("Humanoid") then
             LocalPlayer.Character.Humanoid.WalkSpeed = WALK_SPEED
         end
     end
-end
+end)
 
--- INFINITE JUMP
-local function toggleInfiniteJump()
+infiniteJumpButton.MouseButton1Click:Connect(function()
     INFINITE_JUMP_ON = not INFINITE_JUMP_ON
-    
     if INFINITE_JUMP_ON then
         infiniteJumpButton.Text = "INF JUMP: ON"
-        infiniteJumpButton.BackgroundColor3 = Color3.fromRGB(0, 170, 0)
-        
+        infiniteJumpButton.BackgroundColor3 = Color3.fromRGB(0,170,0)
         infiniteJumpConnection = UserInputService.JumpRequest:Connect(function()
             if LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("Humanoid") then
                 LocalPlayer.Character.Humanoid:ChangeState(Enum.HumanoidStateType.Jumping)
@@ -476,171 +380,81 @@ local function toggleInfiniteJump()
         end)
     else
         infiniteJumpButton.Text = "INF JUMP: OFF"
-        infiniteJumpButton.BackgroundColor3 = Color3.fromRGB(45, 45, 45)
-        
+        infiniteJumpButton.BackgroundColor3 = Color3.fromRGB(45,45,45)
         if infiniteJumpConnection then
             infiniteJumpConnection:Disconnect()
         end
     end
+end)
+
+-- AIMBOT PRISON LIFE ORIGINAL CONTROLADO PELO BOTÃO
+
+local GetPlayers = Players.GetPlayers
+local WTSP = Camera.WorldToScreenPoint
+local FindFirstChild = game.FindFirstChild
+local Vector2_new = Vector2.new
+local Mouse = LocalPlayer:GetMouse()
+
+local function ClosestChar()
+    local Max, Close = math.huge
+    for _,V in pairs(GetPlayers(Players)) do
+        if V ~= LocalPlayer and V.Team ~= LocalPlayer.Team and V.Character then
+            local Torso = FindFirstChild(V.Character, "Torso")
+            if Torso then
+                local Pos, OnScreen = WTSP(Camera, Torso.Position)
+                if OnScreen then
+                    local Dist = (Vector2_new(Pos.X, Pos.Y) - Vector2_new(Mouse.X, Mouse.Y)).Magnitude
+                    if Dist < Max then
+                        Max = Dist
+                        Close = V.Character
+                    end
+                end
+            end
+        end
+    end
+    return Close
 end
 
--- CONEXÕES BOTÕES
+local MT = getrawmetatable(game)
+local __namecall = MT.__namecall
+setreadonly(MT, false)
+
+local aimbotHookEnabled = false
+
+local function enableHook()
+    if aimbotHookEnabled then return end
+    aimbotHookEnabled = true
+    MT.__namecall = newcclosure(function(self, ...)
+        local Method = getnamecallmethod()
+        if Method == "FindPartOnRay" and not checkcaller() and tostring(getfenv(0).script) == "GunInterface" and AIMBOT_ON then
+            local Character = ClosestChar()
+            if Character and Character:FindFirstChild("Torso") then
+                return Character.Torso, Character.Torso.Position
+            end
+        end
+        return __namecall(self, ...)
+    end)
+end
+
+enableHook()
+setreadonly(MT, true)
+
 aimbotButton.MouseButton1Click:Connect(function()
-    AIM_ASSIST_ON = not AIM_ASSIST_ON
-    if AIM_ASSIST_ON then
+    AIMBOT_ON = not AIMBOT_ON
+    if AIMBOT_ON then
         aimbotButton.Text = "AIMBOT: ON"
-        aimbotButton.BackgroundColor3 = Color3.fromRGB(0, 170, 0)
+        aimbotButton.BackgroundColor3 = Color3.fromRGB(0,170,0)
     else
         aimbotButton.Text = "AIMBOT: OFF"
-        aimbotButton.BackgroundColor3 = Color3.fromRGB(45, 45, 45)
-        tracerLine.Visible = false
-        espBox.Visible = false
+        aimbotButton.BackgroundColor3 = Color3.fromRGB(45,45,45)
     end
 end)
 
-presosButton.MouseButton1Click:Connect(function()
-    TARGET_PRESOS = not TARGET_PRESOS
-    if TARGET_PRESOS then
-        presosButton.BackgroundColor3 = Color3.fromRGB(0, 170, 0)
-    else
-        presosButton.BackgroundColor3 = Color3.fromRGB(45, 45, 45)
-    end
-end)
+-- PAINEL ELCDX v1.2 - PARTE 4 (ANTI-AFK)
 
-guardasButton.MouseButton1Click:Connect(function()
-    TARGET_GUARDAS = not TARGET_GUARDAS
-    if TARGET_GUARDAS then
-        guardasButton.BackgroundColor3 = Color3.fromRGB(0, 170, 0)
-    else
-        guardasButton.BackgroundColor3 = Color3.fromRGB(45, 45, 45)
-    end
-end)
-
-criminososButton.MouseButton1Click:Connect(function()
-    TARGET_CRIMINOSOS = not TARGET_CRIMINOSOS
-    if TARGET_CRIMINOSOS then
-        criminososButton.BackgroundColor3 = Color3.fromRGB(0, 170, 0)
-    else
-        criminososButton.BackgroundColor3 = Color3.fromRGB(45, 45, 45)
-    end
-end)
-
-noclipButton.MouseButton1Click:Connect(toggleNoclip)
-speedButton.MouseButton1Click:Connect(toggleSpeed)
-infiniteJumpButton.MouseButton1Click:Connect(toggleInfiniteJump)
-
--- LOOP AIMBOT
-RunService.RenderStepped:Connect(function()
-    if AIM_ASSIST_ON and UserInputService:IsKeyDown(Enum.KeyCode.E) then
-        local closestChar = GetClosestPlayer()
-        if closestChar and closestChar:FindFirstChild("Head") and closestChar:FindFirstChild("HumanoidRootPart") then
-            local head = closestChar.Head
-            local hrp = closestChar.HumanoidRootPart
-            
-            local velocity = hrp.Velocity
-            local targetPos = head.Position + (velocity * 0.1)
-            
-            local camCFrame = Camera.CFrame
-            local newCFrame = CFrame.new(camCFrame.Position, targetPos)
-            Camera.CFrame = camCFrame:Lerp(newCFrame, SMOOTHNESS)
-            
-            local headScreenPos, onScreen = Camera:WorldToViewportPoint(head.Position)
-            if onScreen then
-                local screenCenter = Vector2.new(Camera.ViewportSize.X / 2, Camera.ViewportSize.Y / 2)
-                tracerLine.From = screenCenter
-                tracerLine.To = Vector2.new(headScreenPos.X, headScreenPos.Y)
-                tracerLine.Visible = true
-                
-                local rootPos = Camera:WorldToViewportPoint(hrp.Position)
-                local headPos = Camera:WorldToViewportPoint(head.Position + Vector3.new(0, 1, 0))
-                
-                if rootPos and headPos then
-                    local height = math.abs(headPos.Y - rootPos.Y)
-                    local width = height / 2
-                    
-                    espBox.Size = Vector2.new(width, height)
-                    espBox.Position = Vector2.new(rootPos.X - width/2, rootPos.Y - height/2)
-                    espBox.Visible = true
-                end
-            else
-                tracerLine.Visible = false
-                espBox.Visible = false
-            end
-        else
-            tracerLine.Visible = false
-            espBox.Visible = false
-        end
-    else
-        tracerLine.Visible = false
-        espBox.Visible = false
-    end
-end)
-
--- NOTIFICAÇÃO
-local notificationGui = Instance.new("ScreenGui")
-notificationGui.Name = "ELCDXNotification"
-notificationGui.ResetOnSpawn = false
-notificationGui.Parent = LocalPlayer:WaitForChild("PlayerGui")
-
-local notifFrame = Instance.new("Frame")
-notifFrame.Size = UDim2.new(0, 220, 0, 50)
-notifFrame.Position = UDim2.new(1, 0, 0.8, 0)
-notifFrame.AnchorPoint = Vector2.new(1, 0)
-notifFrame.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
-notifFrame.BorderSizePixel = 2
-notifFrame.BorderColor3 = Color3.fromRGB(255, 0, 0)
-notifFrame.Parent = notificationGui
-
-local notifCorner = Instance.new("UICorner")
-notifCorner.CornerRadius = UDim.new(0, 6)
-notifCorner.Parent = notifFrame
-
-local playerImage = Instance.new("ImageLabel")
-playerImage.Size = UDim2.new(0, 35, 0, 35)
-playerImage.Position = UDim2.new(0, 8, 0.5, -17.5)
-playerImage.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
-playerImage.BorderSizePixel = 0
-playerImage.Image = "rbxthumb://type=AvatarHeadShot&id=" .. LocalPlayer.UserId .. "&w=150&h=150"
-playerImage.Parent = notifFrame
-
-local imageCorner = Instance.new("UICorner")
-imageCorner.CornerRadius = UDim.new(0, 6)
-imageCorner.Parent = playerImage
-
-local messageLabel = Instance.new("TextLabel")
-messageLabel.Size = UDim2.new(0, 165, 1, 0)
-messageLabel.Position = UDim2.new(0, 50, 0, 0)
-messageLabel.BackgroundTransparency = 1
-messageLabel.Text = "ELCDX DOMINA !"
-messageLabel.TextColor3 = Color3.fromRGB(255, 0, 0)
-messageLabel.TextSize = 14
-messageLabel.Font = Enum.Font.GothamBold
-messageLabel.TextStrokeTransparency = 0
-messageLabel.TextStrokeColor3 = Color3.fromRGB(255, 255, 255)
-messageLabel.Parent = notifFrame
-
-local slideIn = TweenService:Create(notifFrame, TweenInfo.new(0.5, Enum.EasingStyle.Back, Enum.EasingDirection.Out), {
-    Position = UDim2.new(1, -10, 0.8, 0)
-})
-
-local slideOut = TweenService:Create(notifFrame, TweenInfo.new(0.5, Enum.EasingStyle.Back, Enum.EasingDirection.In), {
-    Position = UDim2.new(1, 0, 0.8, 0)
-})
-
-slideIn:Play()
-wait(3)
-slideOut:Play()
-
-slideOut.Completed:Connect(function()
-    notificationGui:Destroy()
-end)
-
--- ANTI-AFK
 local vu = game:GetService("VirtualUser")
-game:GetService("Players").LocalPlayer.Idled:connect(function()
-    vu:Button2Down(Vector2.new(0,0),workspace.CurrentCamera.CFrame)
-    wait(1)
-    vu:Button2Up(Vector2.new(0,0),workspace.CurrentCamera.CFrame)
+LocalPlayer.Idled:Connect(function()
+    vu:Button2Down(Vector2.new(0,0), workspace.CurrentCamera.CFrame)
+    task.wait(1)
+    vu:Button2Up(Vector2.new(0,0), workspace.CurrentCamera.CFrame)
 end)
-
-print("ELCDX DOMINA !")
