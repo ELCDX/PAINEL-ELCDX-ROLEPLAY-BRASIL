@@ -1,0 +1,126 @@
+#!/usr/bin/env python3
+import os
+import sys
+import time
+import requests
+import re
+import random
+from bs4 import BeautifulSoup
+
+# Versão do script
+CURRENT_VERSION = "1.8"
+PASTEBIN_URL = "https://pastebin.com/raw/aTS029Hq"  # Link correto da versão mais recente
+
+# Função para colorir texto em RGB
+def rgb_color(text):
+    r = random.randint(50, 255)
+    g = random.randint(50, 255)
+    b = random.randint(50, 255)
+    return f"\033[38;2;{r};{g};{b}m{text}\033[0m"
+
+# Função para verificar e atualizar automaticamente
+def verificar_atualizacao():
+    try:
+        response = requests.get(PASTEBIN_URL, timeout=10)
+        if response.status_code == 200:
+            remote_code = response.text
+            match = re.search(r'CURRENT_VERSION = "(.*?)"', remote_code)
+            remote_version = match.group(1) if match else "desconhecida"
+
+            if remote_version != CURRENT_VERSION:
+                print(rgb_color(f"🆕 Atualização disponível! Versão atual: {CURRENT_VERSION} | Nova versão: {remote_version}"))
+                print(rgb_color("Baixando nova versão..."))
+
+                with open(sys.argv[0], "w", encoding="utf-8") as f:
+                    f.write(remote_code)
+
+                print(rgb_color("✅ Atualização concluída! Execute novamente o script."))
+                exit()
+            else:
+                print(rgb_color("🔄 Você já está usando a versão mais recente."))
+        else:
+            print(rgb_color("⚠ Falha ao verificar atualizações: erro no servidor."))
+    except Exception as e:
+        print(rgb_color(f"❌ Erro na verificação de atualização: {str(e)}"))
+
+# Função para entrada segura
+def safe_input(prompt):
+    try:
+        return input(rgb_color(prompt))
+    except EOFError:
+        return None
+
+# Função para consulta de CEP
+def consultar_cep():
+    cep = safe_input("Digite o CEP: ")
+    if cep is None:
+        print(rgb_color("❌ Erro: Nenhuma entrada detectada."))
+        return
+
+    cep = ''.join(filter(str.isdigit, cep))
+    print(rgb_color(f"🔍 Consultando CEP {cep}, aguarde..."))
+
+    try:
+        url = f"https://www.invertexto.com/consulta-cep"
+        response = requests.post(url, data={"cep": cep}, timeout=10)
+
+        if response.status_code == 200:
+            soup = BeautifulSoup(response.text, "html.parser")
+            resultado = soup.find("div", {"id": "resultado"})
+            resultado_text = resultado.get_text(separator="\n", strip=True) if resultado else "⚠ Não foi possível encontrar dados do CEP."
+
+            print(rgb_color("📌 Resultado da consulta:"))
+            print(rgb_color(resultado_text))
+        else:
+            print(rgb_color("⚠ Falha na consulta: erro no servidor."))
+
+    except Exception as e:
+        print(rgb_color(f"❌ Erro na consulta: {str(e)}"))
+
+    safe_input("🔄 Aperte Enter para voltar: ")
+    time.sleep(1)
+
+# Cabeçalho do menu RGB rápido
+def header():
+    os.system("clear")
+    print(rgb_color("----------------------------"))
+    print(rgb_color("🔥 BEM VINDO AO ELCDX PAINEL! 🔥"))
+    print(rgb_color("----------------------------"))
+    print(rgb_color(f"⚙️ Versão Atual: {CURRENT_VERSION}"))
+    print(rgb_color("----------------------------"))
+    print(rgb_color("1️⃣ - Nome."))
+    print(rgb_color("2️⃣ - CPF."))
+    print(rgb_color("3️⃣ - CNPJ."))
+    print(rgb_color("4️⃣ - IP."))
+    print(rgb_color("5️⃣ - CEP."))
+    print(rgb_color("6️⃣ - Sair."))
+    print(rgb_color("----------------------------"))
+
+# Menu principal otimizado
+def menu():
+    while True:
+        header()
+        opcao = safe_input("🎯 Escolha uma opção: ")
+        if opcao is None:
+            print(rgb_color("❌ Erro: Nenhuma entrada detectada."))
+            exit()
+        elif opcao == "1":
+            print(rgb_color("⚠ Consulta de nome não implementada."))
+        elif opcao == "2":
+            print(rgb_color("⚠ Consulta de CPF não implementada."))
+        elif opcao == "3":
+            print(rgb_color("⚠ Consulta de CNPJ não implementada."))
+        elif opcao == "4":
+            print(rgb_color("⚠ Consulta de IP não implementada."))
+        elif opcao == "5":
+            consultar_cep()
+        elif opcao == "6":
+            print(rgb_color("👋 Saindo..."))
+            time.sleep(1)
+            exit()
+        else:
+            print(rgb_color("⚠ Opção inválida, tente novamente."))
+
+if __name__ == "__main__":
+    verificar_atualizacao()  # Verifica se há atualização antes de iniciar o menu
+    menu()
